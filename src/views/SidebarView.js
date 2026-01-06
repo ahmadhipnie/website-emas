@@ -29,23 +29,36 @@ class SidebarView {
    */
   setActiveMenuItem() {
     const currentPath = window.location.pathname;
-    const currentPage = currentPath.split("/").pop() || "index.html";
+    const currentPage = currentPath.split("/").pop() || "dashboard";
+
+    // Default to dashboard if no page specified
+    const targetPage = currentPage === "" || currentPage === "/" ? "dashboard" : currentPage;
 
     // Find matching menu item
     const links = $$("ul#sidebarnav a");
+    let foundMatch = false;
+
     links.forEach((link) => {
       const linkHref = link.getAttribute("href");
-      const linkPage = linkHref ? linkHref.replace("./", "") : "";
+      if (!linkHref) return;
+
+      // Extract page name from href (e.g., "/dashboard" -> "dashboard")
+      const linkPage = linkHref.replace(/^\//, "").replace(".html", "").replace("./", "");
 
       // Check if this link matches current page
-      if (
-        linkPage === currentPage ||
-        (currentPage === "" && linkPage === "index.html") ||
-        (currentPage === "/" && linkPage === "index.html")
-      ) {
+      if (linkPage === targetPage || linkHref === currentPath) {
         this.activateMenuItem(link);
+        foundMatch = true;
       }
     });
+
+    // If no match found, activate dashboard by default
+    if (!foundMatch) {
+      const dashboardLink = $('a[href="/dashboard"]', this.sidebar) || $('a[href="./index.html"]', this.sidebar);
+      if (dashboardLink) {
+        this.activateMenuItem(dashboardLink);
+      }
+    }
   }
 
   /**
@@ -53,26 +66,32 @@ class SidebarView {
    * @param {Element} link
    */
   activateMenuItem(link) {
+    if (!link) return;
+
     // First, deactivate all menu items
     this.deactivateAllMenuItems();
 
-    // Add active class to the link's parent li
+    // Add active class to the link itself
+    addClass(link, "active");
+
+    // Add active class to the link's parent li (sidebar-item)
     const parentLi = link.closest(".sidebar-item");
     if (parentLi) {
       addClass(parentLi, "active");
-      addClass(link, "active");
     }
 
-    // Traverse up to activate parent items
+    // Traverse up to activate parent items for nested menus
     let current = link.parentElement;
     while (current && !current.matches(".sidebar-nav")) {
       if (current.matches("li.sidebar-item")) {
         addClass(current, "active");
-        const childLink = current.querySelector("a");
-        if (childLink) {
-          addClass(childLink, "active");
+        // Also activate the parent link
+        const parentLink = current.querySelector(":scope > a");
+        if (parentLink) {
+          addClass(parentLink, "active");
         }
-      } else if (current.matches("ul") && !current.matches("ul#sidebarnav")) {
+      } else if (current.matches("ul.collapse") && !current.matches("ul#sidebarnav")) {
+        // Expand parent submenu
         addClass(current, "in");
       }
       current = current.parentElement;
@@ -83,17 +102,20 @@ class SidebarView {
    * Deactivate all menu items
    */
   deactivateAllMenuItems() {
+    // Remove active class from all links
     const links = $$("ul#sidebarnav a");
     links.forEach((link) => {
       removeClass(link, "active");
     });
 
-    const items = $$("ul#sidebarnav li");
+    // Remove active class from sidebar items (but NOT the items themselves)
+    const items = $$("ul#sidebarnav li.sidebar-item");
     items.forEach((item) => {
-      removeClass(item, "active", "selected");
+      removeClass(item, "active");
     });
 
-    const submenus = $$("ul#sidebarnav ul");
+    // Close all submenus
+    const submenus = $$("ul#sidebarnav ul.collapse");
     submenus.forEach((submenu) => {
       removeClass(submenu, "in");
     });
@@ -107,13 +129,18 @@ class SidebarView {
     const hasActive = hasClass(link, "active");
 
     if (!hasActive) {
-      // Close other open menus at same level
-      const parent = link.parentElement.parentElement;
-      const siblings = $$("ul", parent);
-      siblings.forEach((ul) => removeClass(ul, "in"));
-
-      const siblingLinks = $$("a", parent);
-      siblingLinks.forEach((a) => removeClass(a, "active"));
+      // Close only sibling menus at the same level
+      const parentLi = link.parentElement;
+      const siblings = Array.from(parentLi.parentElement.children).filter(
+        (child) => child !== parentLi && child.tagName === "LI"
+      );
+      
+      siblings.forEach((sibling) => {
+        const siblingLink = sibling.querySelector(":scope > a");
+        const siblingUl = sibling.querySelector(":scope > ul");
+        if (siblingLink) removeClass(siblingLink, "active");
+        if (siblingUl) removeClass(siblingUl, "in");
+      });
 
       // Open current menu
       const nextUl = link.nextElementSibling;
@@ -124,9 +151,6 @@ class SidebarView {
     } else {
       // Close current menu
       removeClass(link, "active");
-      const parent = link.parentElement.parentElement;
-      removeClass(parent, "active");
-
       const nextUl = link.nextElementSibling;
       if (nextUl && nextUl.tagName === "UL") {
         removeClass(nextUl, "in");

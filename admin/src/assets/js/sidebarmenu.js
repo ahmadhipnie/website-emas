@@ -34,8 +34,10 @@ $(function () {
     $("#sidebarnav a").on("click", function (e) {
       if (!$(this).hasClass("active")) {
         // hide any open menus and remove all other classes
-        $("ul", $(this).parents("ul:first")).removeClass("in");
-        $("a", $(this).parents("ul:first")).removeClass("active");
+        // FIXED: Only target direct siblings, not all ul/a elements
+        $(this).siblings("ul").removeClass("in");
+        $(this).parent().siblings().find("a").removeClass("active");
+        $(this).parent().siblings().find("ul").removeClass("in");
   
         // open our new menu and add the open class
         $(this).next("ul").addClass("in");

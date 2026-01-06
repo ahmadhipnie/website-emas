@@ -20,16 +20,24 @@ app.use("/src", express.static(path.join(__dirname, "src")));
 // Route mapping for clean URLs
 const routes = {
   "/": "index.html",
-  "/dashboard": "dashboard.html",
-  "/ui-buttons": "ui-buttons.html",
-  "/ui-alerts": "ui-alerts.html",
-  "/ui-card": "ui-card.html",
-  "/ui-forms": "ui-forms.html",
-  "/ui-typography": "ui-typography.html",
-  "/icon-tabler": "icon-tabler.html",
-  "/sample-page": "sample-page.html",
+
+  // login page
   "/login": "authentication-login.html",
-  "/register": "authentication-register.html",
+
+  // Dashboard
+  "/dashboard": "dashboard.html",
+  
+  // Marketing Module
+  "/simulasi-cicilan": "simulasi-cicilan.html",
+  "/lead-management": "lead-management.html",
+  "/kalkulator-griya": "kalkulator-griya.html",
+  "/kalkulator-premi": "kalkulator-premi.html",
+  
+  // Operational Module
+  "/calendar-event": "calendar-event.html",
+  "/stock-inventaris": "stock-inventaris.html",
+  "/rab": "rab.html",
+  "/laporan": "laporan.html",
 };
 
 // Views directory
@@ -38,7 +46,25 @@ const viewsDir = path.join(__dirname, "src", "views", "pages");
 // Handle routes
 Object.entries(routes).forEach(([route, file]) => {
   app.get(route, (req, res) => {
-    res.sendFile(path.join(viewsDir, file));
+    const filePath = path.join(viewsDir, file);
+    console.log(`📄 Serving ${route} → ${filePath}`);
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error(`❌ Error serving ${route}:`, err.message);
+        res.status(404).send(`
+          <!DOCTYPE html>
+          <html>
+          <head><title>404 - File Not Found</title></head>
+          <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+            <h1>404 - File Not Found</h1>
+            <p>Cannot find file: ${file}</p>
+            <p>Path: ${filePath}</p>
+            <a href="/dashboard">Go to Dashboard</a>
+          </body>
+          </html>
+        `);
+      }
+    });
   });
 });
 
@@ -46,6 +72,21 @@ Object.entries(routes).forEach(([route, file]) => {
 app.get("/*.html", (req, res) => {
   const filename = req.path.slice(1); // Remove leading /
   res.sendFile(path.join(viewsDir, filename));
+});
+
+// Debug endpoint
+app.get("/debug/routes", (req, res) => {
+  const routeList = Object.entries(routes).map(([route, file]) => ({
+    route,
+    file,
+    fullPath: path.join(viewsDir, file),
+    exists: require('fs').existsSync(path.join(viewsDir, file))
+  }));
+  
+  res.json({
+    viewsDir,
+    routes: routeList
+  });
 });
 
 // Fallback for landing page
