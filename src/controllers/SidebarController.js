@@ -57,9 +57,22 @@ class SidebarController {
       });
     }
 
+    // Handle header collapse toggle
+    const headerCollapse = document.getElementById("headerCollapse");
+    if (headerCollapse) {
+      headerCollapse.addEventListener("click", () => {
+        this.view.toggleSidebar();
+      });
+    }
+
     // Listen to navigation changes
     EventBus.on("navigation:page:changed", (page) => {
       this.handlePageChange(page);
+    });
+
+    // Update active menu on page load
+    window.addEventListener("load", () => {
+      this.view.setActiveMenuItem();
     });
   }
 
@@ -72,13 +85,12 @@ class SidebarController {
     const hasSubmenu = link.classList.contains("has-arrow");
 
     if (!hasSubmenu) {
-      // Regular menu item - update model
+      // Regular menu item - just update model
       const page = this.getPageFromUrl(link.href);
       this.model.setCurrentPage(page);
 
-      // For SPA, prevent default and handle routing
-      // e.preventDefault();
-      // Handle routing here if needed
+      // Let the browser navigate naturally
+      // setActiveMenuItem will be called on page load
     }
   }
 

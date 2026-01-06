@@ -7,8 +7,11 @@ export const getSidebarHTML = () => `
 <aside class="left-sidebar">
   <div>
     <div class="brand-logo d-flex align-items-center justify-content-between">
-      <a href="/dashboard" class="text-nowrap logo-img">
-        <img src="/public/images/logos/logo-light.svg" alt="" />
+      <a href="/dashboard" class="text-nowrap logo-img d-flex align-items-center gap-2" aria-label="Website Emas">
+        <span class="d-flex align-items-center gap-2">
+          <iconify-icon icon="fa-solid:coins" style="color:#d4af37" class="fs-4" aria-hidden="true"></iconify-icon>
+          <span class="brand-text fw-semibold fs-4 ms-1">Website Emas</span>
+        </span>
       </a>
       <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
         <i class="ti ti-x fs-8"></i>

@@ -22,10 +22,10 @@ class App {
     console.log("🚀 Initializing MVC Admin Dashboard...");
 
     try {
-      // Initialize Sidebar Controller
-      this.controllers.sidebar = new SidebarController();
-      this.controllers.sidebar.init();
-      console.log("✅ Sidebar Controller initialized");
+      // SIDEBAR CONTROLLER DISABLED - menggunakan sidebarmenu.js standalone
+      // this.controllers.sidebar = new SidebarController();
+      // this.controllers.sidebar.init();
+      console.log("✅ Sidebar handled by sidebarmenu.js");
 
       // Initialize Dashboard Controller
       this.controllers.dashboard = new DashboardController();
