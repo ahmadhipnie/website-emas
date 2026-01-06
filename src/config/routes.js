@@ -1,18 +1,20 @@
 /**
  * Router Configuration
  * Manage routing and page navigation
+ *
+ * Routes map clean URLs to HTML files in src/views/pages/
  */
 
 const routes = {
   "/": "index.html",
   "/dashboard": "dashboard.html",
-  "/ui-buttons.html": "ui-buttons.html",
-  "/ui-alerts.html": "ui-alerts.html",
-  "/ui-card.html": "ui-card.html",
-  "/ui-forms.html": "ui-forms.html",
-  "/ui-typography.html": "ui-typography.html",
-  "/icon-tabler.html": "icon-tabler.html",
-  "/sample-page.html": "sample-page.html",
+  "/ui-buttons": "ui-buttons.html",
+  "/ui-alerts": "ui-alerts.html",
+  "/ui-card": "ui-card.html",
+  "/ui-forms": "ui-forms.html",
+  "/ui-typography": "ui-typography.html",
+  "/icon-tabler": "icon-tabler.html",
+  "/sample-page": "sample-page.html",
   "/login": "authentication-login.html",
   "/register": "authentication-register.html",
 };

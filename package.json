@@ -1,0 +1,21 @@
+{
+  "name": "website-emas",
+  "version": "1.0.0",
+  "description": "Website EMAS - MVC Architecture",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "mvc",
+    "javascript",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
