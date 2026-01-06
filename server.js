@@ -21,23 +21,35 @@ app.use("/src", express.static(path.join(__dirname, "src")));
 const routes = {
   "/": "index.html",
 
-  // login page
-  "/login": "authentication-login.html",
+  // Authentication
+  "/login": "auth/login.html",
+  "/register": "auth/register.html",
 
   // Dashboard
   "/dashboard": "dashboard.html",
   
   // Marketing Module
-  "/simulasi-cicilan": "simulasi-cicilan.html",
-  "/lead-management": "lead-management.html",
-  "/kalkulator-griya": "kalkulator-griya.html",
-  "/kalkulator-premi": "kalkulator-premi.html",
+  "/simulasi-cicilan": "marketing/simulasi-cicilan.html",
+  "/lead-management": "marketing/lead-management.html",
+  "/kalkulator-griya": "marketing/kalkulator-griya.html",
+  "/kalkulator-premi": "marketing/kalkulator-premi.html",
   
   // Operational Module
-  "/calendar-event": "calendar-event.html",
-  "/stock-inventaris": "stock-inventaris.html",
-  "/rab": "rab.html",
-  "/laporan": "laporan.html",
+  "/calendar-event": "operational/calendar-event.html",
+  "/stock-inventaris": "operational/stock-inventaris.html",
+  "/rab": "operational/rab.html",
+  "/laporan": "operational/laporan.html",
+
+  // UI Components
+  "/ui-alerts": "ui-components/ui-alerts.html",
+  "/ui-buttons": "ui-components/ui-buttons.html",
+  "/ui-card": "ui-components/ui-card.html",
+  "/ui-forms": "ui-components/ui-forms.html",
+  "/ui-typography": "ui-components/ui-typography.html",
+  "/icon-tabler": "ui-components/icon-tabler.html",
+
+  // Sample
+  "/sample-page": "sample-page.html",
 };
 
 // Views directory
