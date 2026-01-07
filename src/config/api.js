@@ -446,6 +446,230 @@ router.delete('/users/:id', isAuthenticated, isAdmin, async (req, res) => {
 });
 
 // =============================================
+// Lead Management Routes
+// =============================================
+
+/**
+ * GET /api/leads
+ * Get all leads
+ * NOTE: Auth temporarily disabled for development - add back isAuthenticated middleware in production
+ */
+router.get('/leads', async (req, res) => {
+  try {
+    console.log('📋 GET /api/leads - Fetching leads data...');
+
+    const leads = await query(
+      'SELECT id_leads, nama_nasabah, no_hp, email, produk, status_leads, tanggal_input, keterangan FROM leads ORDER BY id_leads DESC'
+    );
+
+    console.log(`✅ Found ${leads.length} leads`);
+
+    res.json({
+      success: true,
+      data: leads
+    });
+  } catch (error) {
+    console.error('❌ Get leads error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil data leads',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/leads/:id
+ * Get lead by ID
+ */
+router.get('/leads/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const leads = await query(
+      'SELECT id_leads, nama_nasabah, no_hp, email, produk, status_leads, tanggal_input, keterangan FROM leads WHERE id_leads = ?',
+      [id]
+    );
+
+    if (leads.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Lead tidak ditemukan'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: leads[0]
+    });
+  } catch (error) {
+    console.error('Get lead error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil data lead',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/leads
+ * Create new lead
+ */
+router.post('/leads', isAuthenticated, async (req, res) => {
+  try {
+    const { nama_nasabah, no_hp, email, produk, status_leads, tanggal_input, keterangan } = req.body;
+
+    // Validasi input - nama_nasabah is required (NOT NULL in database)
+    if (!nama_nasabah) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama nasabah harus diisi'
+      });
+    }
+
+    // Create lead
+    const result = await query(
+      'INSERT INTO leads (nama_nasabah, no_hp, email, produk, status_leads, tanggal_input, keterangan) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [nama_nasabah, no_hp, email, produk, status_leads, tanggal_input, keterangan]
+    );
+
+    console.log('✅ Lead created:', result.insertId);
+
+    res.status(201).json({
+      success: true,
+      message: 'Lead berhasil dibuat',
+      data: {
+        id_leads: result.insertId,
+        nama_nasabah,
+        no_hp,
+        email,
+        produk,
+        status_leads,
+        tanggal_input,
+        keterangan
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Create lead error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal membuat lead baru',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/leads/:id
+ * Update lead
+ */
+router.put('/leads/:id', isAuthenticated, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { nama_nasabah, no_hp, email, produk, status_leads, tanggal_input, keterangan } = req.body;
+
+    console.log('📝 PUT /api/leads/:id - Updating lead:', {
+      id: id,
+      nama_nasabah: nama_nasabah,
+      no_hp: no_hp
+    });
+
+    // Validasi ID
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID lead tidak valid'
+      });
+    }
+
+    // Validasi input - nama_nasabah is required
+    if (!nama_nasabah) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama nasabah harus diisi'
+      });
+    }
+
+    // Check apakah lead exists
+    const existingLead = await query(
+      'SELECT id_leads FROM leads WHERE id_leads = ?',
+      [id]
+    );
+
+    if (existingLead.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Lead tidak ditemukan'
+      });
+    }
+
+    // Update lead
+    await query(
+      'UPDATE leads SET nama_nasabah = ?, no_hp = ?, email = ?, produk = ?, status_leads = ?, tanggal_input = ?, keterangan = ? WHERE id_leads = ?',
+      [nama_nasabah, no_hp, email, produk, status_leads, tanggal_input, keterangan, id]
+    );
+
+    console.log('✅ Lead updated:', id);
+
+    res.json({
+      success: true,
+      message: 'Lead berhasil diupdate'
+    });
+
+  } catch (error) {
+    console.error('❌ Update lead error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengupdate lead',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/leads/:id
+ * Delete lead
+ */
+router.delete('/leads/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check apakah lead exists
+    const existingLead = await query(
+      'SELECT id_leads, nama_nasabah FROM leads WHERE id_leads = ?',
+      [id]
+    );
+
+    if (existingLead.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Lead tidak ditemukan'
+      });
+    }
+
+    // Delete lead
+    await query('DELETE FROM leads WHERE id_leads = ?', [id]);
+
+    console.log('✅ Lead deleted:', id);
+
+    res.json({
+      success: true,
+      message: 'Lead berhasil dihapus'
+    });
+
+  } catch (error) {
+    console.error('❌ Delete lead error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menghapus lead',
+      error: error.message
+    });
+  }
+});
+
+// =============================================
 // Testing Routes
 // =============================================
 
