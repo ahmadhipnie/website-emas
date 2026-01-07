@@ -3,30 +3,242 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Laporan - Website EMAS</title>
+    <title>Laporan (LPJ) - Website EMAS</title>
     <link rel="shortcut icon" type="image/png" href="/public/images/logos/seodashlogo.png" />
-    <link rel="stylesheet" href="/public/css/styles.min.css" />`n    <link rel="stylesheet" href="/public/css/spa-transitions.css" />
+    <link rel="stylesheet" href="/public/css/styles.min.css" />
+    <link rel="stylesheet" href="/public/css/spa-transitions.css" />
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
 </head>
 <body>
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
         <!-- Sidebar Start -->
-        <!-- Sidebar Container - Loaded dynamically -->
-      <div id="sidebar-container"></div>
-      <!--  Sidebar End -->
+        <div id="sidebar-container"></div>
+        <!--  Sidebar End -->
         
         <!-- Main wrapper -->
         <div class="body-wrapper">
-            <!-- Header Container - Loaded dynamically -->
-        <div id="header-container"></div>
-        <!--  Header End -->
+            <!-- Header Container -->
+            <div id="header-container"></div>
+            <!--  Header End -->
             
             <div class="container-fluid">
+                <!-- Page Title -->
+                <div class="card bg-success-subtle shadow-none position-relative overflow-hidden mb-4">
+                    <div class="card-body px-4 py-3">
+                        <div class="row align-items-center">
+                            <div class="col-9">
+                                <h4 class="fw-semibold mb-8">Laporan Pertanggungjawaban (LPJ)</h4>
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item">
+                                            <a class="text-muted text-decoration-none" href="/dashboard">Home</a>
+                                        </li>
+                                        <li class="breadcrumb-item" aria-current="page">Laporan</li>
+                                    </ol>
+                                </nav>
+                            </div>
+                            <div class="col-3">
+                                <div class="text-center mb-n5">
+                                    <img src="/public/images/backgrounds/rocket.png" alt="" class="img-fluid mb-n4" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Laporan Table Card -->
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title fw-semibold mb-4">Laporan</h5>
-                        <p class="mb-0">Halaman untuk menampilkan berbagai laporan operasional.</p>
-                        <p class="text-muted">Konten halaman ini akan dikembangkan sesuai kebutuhan bisnis.</p>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="card-title fw-semibold mb-0">Daftar Laporan Pertanggungjawaban</h5>
+                                <p class="text-muted mb-0">Kelola LPJ kegiatan dengan relasi ke RAB</p>
+                            </div>
+                            <button type="button" class="btn btn-success" id="btnAddLaporan">
+                                <iconify-icon icon="tabler:plus" class="me-1"></iconify-icon>
+                                Tambah Laporan
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table id="laporanTable" class="table table-striped table-bordered" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Kegiatan</th>
+                                        <th>Total Pengeluaran</th>
+                                        <th>Anggaran RAB</th>
+                                        <th>% RAB</th>
+                                        <th>Tgl LPJ</th>
+                                        <th>Bukti Dokumen</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be loaded via DataTables Ajax -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add/Edit Laporan -->
+    <div class="modal fade" id="laporanModal" tabindex="-1" aria-labelledby="laporanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="laporanModalLabel">Tambah Laporan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="laporanForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="laporanId" />
+                        
+                        <div class="mb-3">
+                            <label for="id_rab" class="form-label">Pilih RAB (Opsional)</label>
+                            <select class="form-select" id="id_rab">
+                                <option value="">Pilih RAB (Opsional)</option>
+                                <!-- Will be populated dynamically -->
+                            </select>
+                            <small class="text-muted">Pilih RAB jika laporan ini terkait dengan anggaran tertentu</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nama_kegiatan" placeholder="Masukkan nama kegiatan" required />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="total_pengeluaran" class="form-label">Total Pengeluaran (Rp) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="total_pengeluaran" min="0" step="0.01" placeholder="0" required />
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="tanggal_lpj" class="form-label">Tanggal LPJ</label>
+                                <input type="date" class="form-control" id="tanggal_lpj" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bukti_dokumen" class="form-label">Bukti Dokumen (PDF) <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="bukti_dokumen" accept=".pdf" required />
+                            <small class="text-muted">Upload file PDF maksimal 5MB</small>
+                            <div id="currentFileName" class="mt-2 text-info" style="display: none;">
+                                File saat ini: <strong id="currentFileNameText"></strong>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="keterangan" class="form-label">Keterangan</label>
+                            <textarea class="form-control" id="keterangan" rows="3" placeholder="Keterangan tambahan (opsional)"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal View Laporan -->
+    <div class="modal fade" id="viewLaporanModal" tabindex="-1" aria-labelledby="viewLaporanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="viewLaporanModalLabel">Detail Laporan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <table class="table table-borderless table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-semibold" style="width: 140px;">Nama Kegiatan</td>
+                                        <td>:</td>
+                                        <td id="viewNamaKegiatan">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Total Pengeluaran</td>
+                                        <td>:</td>
+                                        <td id="viewTotalPengeluaran" class="fw-bold text-danger">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">RAB Terkait</td>
+                                        <td>:</td>
+                                        <td id="viewRAB">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Persentase thd RAB</td>
+                                        <td>:</td>
+                                        <td id="viewPersentaseRAB">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Tanggal LPJ</td>
+                                        <td>:</td>
+                                        <td id="viewTanggalLPJ">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">Keterangan</td>
+                                        <td>:</td>
+                                        <td id="viewKeterangan">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><iconify-icon icon="tabler:file-text" class="me-1"></iconify-icon> Bukti Dokumen</h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="pdfViewerContainer" style="min-height: 500px;">
+                                        <!-- PDF will be embedded here -->
+                                        <div id="noPDFMessage" class="text-center p-5 text-muted">
+                                            <iconify-icon icon="tabler:file-off" width="64"></iconify-icon>
+                                            <p class="mt-3">Tidak ada dokumen PDF</p>
+                                        </div>
+                                        <iframe id="pdfViewer" style="width: 100%; height: 600px; border: none; display: none;"></iframe>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="btnDownloadPDF" href="#" target="_blank" class="btn btn-info me-auto" style="display: none;">
+                        <iconify-icon icon="tabler:download" class="me-1"></iconify-icon>
+                        Download PDF
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Delete Confirmation -->
+    <div class="modal fade" id="deleteLaporanModal" tabindex="-1" aria-labelledby="deleteLaporanModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteLaporanModalLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="deleteLaporanId" />
+                    <p>Apakah Anda yakin ingin menghapus Laporan ini?</p>
+                    <p class="text-muted mb-0"><small>Data yang dihapus tidak dapat dikembalikan.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmDelete">Hapus</button>
                 </div>
             </div>
         </div>
@@ -36,9 +248,17 @@
     <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/public/libs/simplebar/dist/simplebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
     <!-- Components Loader -->
     <script src="/public/js/components-loader.js"></script>
+    
+    <!-- Laporan JS -->
+    <script src="/public/js/laporan.js"></script>
+    
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         loadCommonComponents();

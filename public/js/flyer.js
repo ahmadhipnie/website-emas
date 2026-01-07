@@ -3,7 +3,7 @@
  * Handle CRUD operations untuk flyer dengan upload gambar
  */
 
-let flyersTable;
+let flyerTable;
 let isEditMode = false;
 
 /**
@@ -13,14 +13,14 @@ function initializeFlyer() {
   console.log('🔄 Initializing Flyer Management...');
   
   // Check apakah table element ada
-  const tableElement = $('#flyersTable');
+  const tableElement = $('#flyerTable');
   if (tableElement.length === 0) {
-    console.warn('⚠️ Table #flyersTable not found');
+    console.warn('⚠️ Table #flyerTable not found');
     return;
   }
   
   // Check if already initialized
-  if ($.fn.DataTable.isDataTable('#flyersTable')) {
+  if ($.fn.DataTable.isDataTable('#flyerTable')) {
     console.log('ℹ️ DataTable already initialized');
     return;
   }
@@ -28,13 +28,13 @@ function initializeFlyer() {
   console.log('📊 Creating DataTable...');
   
   // Initialize DataTable
-  flyersTable = $('#flyersTable').DataTable({
+  flyerTable = $('#flyerTable').DataTable({
     ajax: {
-      url: '/api/flyers',
+      url: '/api/flyer',
       dataSrc: 'data',
       error: function(xhr, error, code) {
         console.error('DataTables Ajax Error:', error);
-        alert('Gagal memuat data flyers. Pastikan tabel flyers sudah dibuat di database.');
+        alert('Gagal memuat data flyer. Pastikan tabel flyer sudah dibuat di database.');
       }
     },
     columns: [
@@ -129,13 +129,13 @@ function initializeFlyer() {
   });
   
   // Delegated events untuk tombol di table
-  $('#flyersTable').on('click', '.btn-edit', function(e) {
+  $('#flyerTable').on('click', '.btn-edit', function(e) {
     e.preventDefault();
     const id = $(this).data('id');
     openEditModal(id);
   });
 
-  $('#flyersTable').on('click', '.btn-delete', function(e) {
+  $('#flyerTable').on('click', '.btn-delete', function(e) {
     e.preventDefault();
     const id = $(this).data('id');
     const name = $(this).data('name');
@@ -172,7 +172,7 @@ async function openEditModal(flyerId) {
   resetForm();
   
   try {
-    const response = await fetch(`/api/flyers/${flyerId}`);
+    const response = await fetch(`/api/flyer/${flyerId}`);
     const result = await response.json();
 
     if (result.success) {
@@ -185,7 +185,7 @@ async function openEditModal(flyerId) {
       
       // Show current image
       if (flyer.gambar) {
-        $('#imagePreview').attr('src', `/public/uploads/flyers/${flyer.gambar}`);
+        $('#imagePreview').attr('src', `/public/uploads/flyer/${flyer.gambar}`);
         $('#imagePreviewContainer').show();
       }
       
@@ -245,13 +245,13 @@ async function handleSaveFlyer(e) {
     
     if (currentIsEditMode) {
       // Update flyer
-      response = await fetch(`/api/flyers/${flyerId}`, {
+      response = await fetch(`/api/flyer/${flyerId}`, {
         method: 'PUT',
         body: formData
       });
     } else {
       // Create flyer baru
-      response = await fetch('/api/flyers', {
+      response = await fetch('/api/flyer', {
         method: 'POST',
         body: formData
       });
@@ -267,7 +267,7 @@ async function handleSaveFlyer(e) {
       modal.hide();
       
       // Reload table
-      flyersTable.ajax.reload();
+      flyerTable.ajax.reload();
     } else {
       showAlert('danger', result.message);
     }
@@ -308,7 +308,7 @@ async function handleDeleteFlyer() {
   deleteSpinner.show();
 
   try {
-    const response = await fetch(`/api/flyers/${flyerId}`, {
+    const response = await fetch(`/api/flyer/${flyerId}`, {
       method: 'DELETE'
     });
 
@@ -322,7 +322,7 @@ async function handleDeleteFlyer() {
       modal.hide();
       
       // Reload table
-      flyersTable.ajax.reload();
+      flyerTable.ajax.reload();
     } else {
       showAlert('danger', result.message);
     }
@@ -377,7 +377,7 @@ function showAlert(type, message) {
 
 // Initialize saat DOM ready
 $(document).ready(function() {
-  if ($('#flyersTable').length > 0) {
+  if ($('#flyerTable').length > 0) {
     initializeFlyer();
   }
 });

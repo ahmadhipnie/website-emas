@@ -5,28 +5,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Calendar Event - Website EMAS</title>
     <link rel="shortcut icon" type="image/png" href="/public/images/logos/seodashlogo.png" />
-    <link rel="stylesheet" href="/public/css/styles.min.css" />`n    <link rel="stylesheet" href="/public/css/spa-transitions.css" />
+    <link rel="stylesheet" href="/public/css/styles.min.css" />
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet" />
 </head>
 <body>
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
-        <!-- Sidebar Start -->
         <!-- Sidebar Container - Loaded dynamically -->
-      <div id="sidebar-container"></div>
-      <!--  Sidebar End -->
+        <div id="sidebar-container"></div>
+        <!--  Sidebar End -->
         
         <!-- Main wrapper -->
         <div class="body-wrapper">
             <!-- Header Container - Loaded dynamically -->
-        <div id="header-container"></div>
-        <!--  Header End -->
+            <div id="header-container"></div>
+            <!--  Header End -->
             
             <div class="container-fluid">
+                <!-- Page Header -->
+                <div class="card bg-info-subtle shadow-none position-relative overflow-hidden mb-4">
+                    <div class="card-body px-4 py-3">
+                        <div class="row align-items-center">
+                            <div class="col-9">
+                                <h4 class="fw-semibold mb-8">Calendar Event</h4>
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item">
+                                            <a class="text-muted text-decoration-none" href="/dashboard">Home</a>
+                                        </li>
+                                        <li class="breadcrumb-item" aria-current="page">Operasional</li>
+                                        <li class="breadcrumb-item active" aria-current="page">Calendar Event</li>
+                                    </ol>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div id="alertMessage" class="alert alert-dismissible fade" role="alert" style="display: none;">
+                    <span id="alertText"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Calendar Card -->
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title fw-semibold mb-4">Calendar Event</h5>
-                        <p class="mb-0">Kalender untuk mengelola event dan jadwal kegiatan.</p>
-                        <p class="text-muted">Konten halaman ini akan dikembangkan sesuai kebutuhan bisnis.</p>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title fw-semibold mb-0">Event Calendar</h5>
+                            <button class="btn btn-primary" id="btnAddEvent">
+                                <i class="ti ti-plus"></i> Tambah Event
+                            </button>
+                        </div>
+
+                        <!-- Calendar Container -->
+                        <div id="calendar"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add/Edit Event -->
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Tambah Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="eventForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="eventId" name="id_event">
+                        
+                        <div class="mb-3">
+                            <label for="namaEvent" class="form-label">Nama Event <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="namaEvent" name="nama_event" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="lokasi" class="form-label">Lokasi <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="lokasi" name="lokasi" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="tanggalEvent" class="form-label">Tanggal Event <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="tanggalEvent" name="tanggal_event" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="waktuEvent" class="form-label">Waktu Event <span class="text-danger">*</span></label>
+                                    <input type="time" class="form-control" id="waktuEvent" name="waktu_event" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="penanggungJawab" class="form-label">Penanggung Jawab <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="penanggungJawab" name="penanggung_jawab" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="keterangan" class="form-label">Keterangan</label>
+                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="btnSaveEvent">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal View Event Detail -->
+    <div class="modal fade" id="viewEventModal" tabindex="-1" aria-labelledby="viewEventModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewEventModalLabel">Detail Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Nama Event</th>
+                            <td id="viewNamaEvent"></td>
+                        </tr>
+                        <tr>
+                            <th>Lokasi</th>
+                            <td id="viewLokasi"></td>
+                        </tr>
+                        <tr>
+                            <th>Tanggal</th>
+                            <td id="viewTanggal"></td>
+                        </tr>
+                        <tr>
+                            <th>Waktu</th>
+                            <td id="viewWaktu"></td>
+                        </tr>
+                        <tr>
+                            <th>Penanggung Jawab</th>
+                            <td id="viewPenanggungJawab"></td>
+                        </tr>
+                        <tr>
+                            <th>Keterangan</th>
+                            <td id="viewKeterangan"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" id="btnEditFromView">
+                        <i class="ti ti-edit"></i> Edit
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btnDeleteFromView">
+                        <i class="ti ti-trash"></i> Hapus
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Delete Confirmation -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Yakin ingin menghapus event "<span id="deleteEventName"></span>"?</p>
+                    <input type="hidden" id="deleteEventId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Hapus</button>
                 </div>
             </div>
         </div>
@@ -37,11 +197,19 @@
     <script src="/public/libs/simplebar/dist/simplebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
 
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
     <!-- Components Loader -->
     <script src="/public/js/components-loader.js"></script>
+    
+    <!-- Calendar Event JS -->
+    <script src="/public/js/calendar-event.js"></script>
+    
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         loadCommonComponents();
+        initializeCalendar();
       });
     </script>
   </body>
