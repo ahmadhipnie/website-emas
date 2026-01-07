@@ -100,14 +100,285 @@
             </header>
             
             <div class="container-fluid">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title fw-semibold mb-4">Simulasi Cicilan Emas</h5>
-                        <p class="mb-0">Halaman untuk simulasi cicilan pembelian emas.</p>
-                        <p class="text-muted">Konten halaman ini akan dikembangkan sesuai kebutuhan bisnis.</p>
+                <!-- Page Title -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="fw-semibold mb-1">Simulasi Cicilan Emas</h4>
+                                <p class="mb-0 text-muted">Hitung cicilan pembelian emas dengan mudah</p>
+                            </div>
+                            <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                                <iconify-icon icon="solar:calculator-minimalistic-bold-duotone" class="fs-2 text-primary"></iconify-icon>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Form & Hasil -->
+                <div class="row mb-4">
+                    <!-- Form Input -->
+                    <div class="col-12 col-lg-4 mb-4">
+                        <div class="card border-primary border-opacity-10 h-100">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <iconify-icon icon="solar:calculator-bold-duotone" class="fs-5 me-2 text-primary"></iconify-icon>
+                                    Detail Simulasi
+                                </h5>
+
+                                <form id="simulasiForm">
+                                    <!-- Tanggal Update Harga -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Tanggal Update Harga</label>
+                                        <input type="date" class="form-control" id="tanggalUpdate" required>
+                                    </div>
+
+                                    <!-- Harga Beli Emas per Item -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Harga Beli Emas per Item (IDR)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="text" class="form-control" id="hargaBeliEmas" placeholder="Contoh: 6.060.000" required>
+                                        </div>
+                                        <small class="text-muted">Harga beli per keping (bukan per gram)</small>
+                                    </div>
+
+                                    <!-- Berat Emas -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Berat Emas (gram)</label>
+                                        <select class="form-select" id="beratEmas" required>
+                                            <option value="2">2 gram</option>
+                                            <option value="3">3 gram</option>
+                                            <option value="5" selected>5 gram</option>
+                                            <option value="10">10 gram</option>
+                                            <option value="25">25 gram</option>
+                                            <option value="50">50 gram</option>
+                                            <option value="100">100 gram</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Harga Buy Back (Optional) -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Harga Buy Back per Gram (IDR) <small class="text-muted">- Opsional</small></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="text" class="form-control" id="hargaBuyBack" placeholder="1.295.000">
+                                        </div>
+                                        <small class="text-muted">Hanya perlu diisi untuk referensi</small>
+                                    </div>
+
+                                    <!-- Info Parameter -->
+                                    <div class="alert alert-info mb-3">
+                                        <h6 class="mb-2"><iconify-icon icon="solar:info-circle-bold-duotone" class="fs-5 me-1"></iconify-icon>Parameter Otomatis:</h6>
+                                        <ul class="mb-0 small">
+                                            <li>DP: <strong>5%</strong> dari harga beli</li>
+                                            <li>Biaya Administrasi: <strong>0.25%</strong> dari pembiayaan</li>
+                                            <li>Biaya Materai: <strong>Rp10.000</strong></li>
+                                            <li>Margin/Bunga: <strong>9.5%</strong> per tahun (flat)</li>
+                                            <li>Tenor: <strong>12, 24, 36, 48, 60 bulan</strong></li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Buttons -->
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-primary flex-grow-1" id="btnHitung">
+                                            <iconify-icon icon="solar:calculator-bold-duotone" class="fs-5 me-1"></iconify-icon>
+                                            Hitung
+                                        </button>
+                                        <button type="button" class="btn btn-success flex-grow-1" id="btnSimpan" disabled>
+                                            <iconify-icon icon="solar:disk-bold-duotone" class="fs-5 me-1"></iconify-icon>
+                                            Simpan
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hasil Perhitungan -->
+                    <div class="col-12 col-lg-8 mb-4">
+                        <div class="card border-success border-opacity-10 h-100">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <iconify-icon icon="solar:file-text-bold-duotone" class="fs-5 me-2 text-success"></iconify-icon>
+                                    Hasil Perhitungan
+                                </h5>
+
+                                <div id="hasilContainer" class="text-center py-5">
+                                    <iconify-icon icon="solar:calculator-minimalistic-linear" class="fs-1 text-muted mb-3"></iconify-icon>
+                                    <p class="text-muted">Klik tombol "Hitung" untuk melihat hasil simulasi</p>
+                                </div>
+
+                                <div id="hasilPerhitungan" style="display: none;">
+                                    <div class="row">
+                                        <!-- Harga Beli Emas -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card bg-primary bg-opacity-10 border-0">
+                                                <div class="card-body">
+                                                    <p class="mb-1 text-muted small">Harga Beli Emas</p>
+                                                    <h4 class="fw-bold text-primary mb-0" id="hargaBeliEmasDisplay">0</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Total Uang Muka -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card bg-success bg-opacity-10 border-0">
+                                                <div class="card-body">
+                                                    <p class="mb-1 text-muted small">Total Uang Muka (DP)</p>
+                                                    <h4 class="fw-bold text-success mb-0" id="totalUangMukaDisplay">0</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Pembiayaan -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card bg-info bg-opacity-10 border-0">
+                                                <div class="card-body">
+                                                    <p class="mb-1 text-muted small">Pembiayaan</p>
+                                                    <h4 class="fw-bold text-info mb-0" id="pembiayaanDisplay">0</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- DP (5%) -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card bg-warning bg-opacity-10 border-0">
+                                                <div class="card-body">
+                                                    <p class="mb-1 text-muted small">DP (5%)</p>
+                                                    <h4 class="fw-bold text-warning mb-0" id="dpDisplay">0</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tabel Angsuran per Tenor -->
+                                    <div class="card border-primary border-opacity-10 mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title mb-3">
+                                                <iconify-icon icon="solar:chart-bold-duotone" class="fs-5 me-1"></iconify-icon>
+                                                Angsuran per Bulan
+                                            </h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-striped mb-0">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Tenor</th>
+                                                            <th>12 Bulan</th>
+                                                            <th>24 Bulan</th>
+                                                            <th>36 Bulan</th>
+                                                            <th>48 Bulan</th>
+                                                            <th>60 Bulan</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><strong>Angsuran</strong></td>
+                                                            <td class="text-end fw-bold text-primary" id="angsuran12Display">0</td>
+                                                            <td class="text-end fw-bold text-primary" id="angsuran24Display">0</td>
+                                                            <td class="text-end fw-bold text-primary" id="angsuran36Display">0</td>
+                                                            <td class="text-end fw-bold text-primary" id="angsuran48Display">0</td>
+                                                            <td class="text-end fw-bold text-primary" id="angsuran60Display">0</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Rincian Biaya -->
+                                    <div class="card border-info border-opacity-10 mb-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title mb-3">
+                                                <iconify-icon icon="solar:document-text-bold-duotone" class="fs-5 me-1"></iconify-icon>
+                                                Rincian Biaya
+                                            </h6>
+                                            <table class="table table-sm mb-0">
+                                                <tr>
+                                                    <td>Harga Beli Emas</td>
+                                                    <td class="text-end" id="hargaBeliEmasDisplay2">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>DP (5%)</td>
+                                                    <td class="text-end" id="dpDisplay2">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Pembiayaan</td>
+                                                    <td class="text-end" id="pembiayaanDisplay2">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Administrasi (0.25%)</td>
+                                                    <td class="text-end" id="admDisplay">0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Materai</td>
+                                                    <td class="text-end" id="materaiDisplay">0</td>
+                                                </tr>
+                                                <tr class="table-success">
+                                                    <td><strong>Total Uang Muka</strong></td>
+                                                    <td class="text-end"><strong id="totalUangMukaDisplay2">0</strong></td>
+                                                </tr>
+                                                <tr id="hargaBuyBackRow" style="display: none;">
+                                                    <td>Harga Buy Back (2 gram)</td>
+                                                    <td class="text-end" id="hargaBuyBackDisplay">0</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Ringkasan -->
+                                    <div class="alert alert-info">
+                                        <h6 class="alert-heading mb-2">
+                                            <iconify-icon icon="solar:info-circle-bold-duotone" class="fs-5 me-1"></iconify-icon>
+                                            Ringkasan Simulasi
+                                        </h6>
+                                        <ul class="mb-0 small" id="ringkasanSimulasi">
+                                            <!-- Akan diisi dengan JavaScript -->
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Riwayat Simulasi -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <iconify-icon icon="solar:history-bold-duotone" class="fs-5 me-2 text-primary"></iconify-icon>
+                                    Riwayat Simulasi Terkini
+                                </h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="riwayatTable">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Tanggal</th>
+                                                <th>Berat</th>
+                                                <th>Harga Beli</th>
+                                                <th>Total DP</th>
+                                                <th>Angsuran (12 bln)</th>
+                                                <th>Angsuran (60 bln)</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="riwayatBody">
+                                            <tr>
+                                                <td colspan="7" class="text-center text-muted">Belum ada simulasi</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Toast notification container -->
+            <div id="toastContainer"></div>
         </div>
     </div>
     
@@ -115,7 +386,10 @@
     <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/public/libs/simplebar/dist/simplebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
-    
+
+    <!-- Simulasi Cicilan JavaScript -->
+    <script src="/public/js/simulasi-cicilan.js"></script>
+
     <!-- Global Auth Handler -->
     <script src="/public/js/auth-handler.js"></script>
 </body>
