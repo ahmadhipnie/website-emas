@@ -19,6 +19,7 @@ pnpm-debug.log*
 Thumbs.db
 
 # IDE
+.claude/
 .vscode/
 .idea/
 *.swp
