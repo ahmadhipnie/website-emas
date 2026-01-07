@@ -26,7 +26,7 @@ const router = express.Router();
 // Storage configuration
 const storage = multer.diskStorage({
   destination: async function (req, file, cb) {
-    const uploadPath = path.join(__dirname, '../../public/uploads/flyers');
+    const uploadPath = path.join(__dirname, '../../public/uploads/flyer');
     // Pastikan folder exists
     try {
       await fs.mkdir(uploadPath, { recursive: true });
@@ -644,16 +644,16 @@ router.get('/emas/usage', async (req, res) => {
 });
 
 // =============================================
-// Flyers CRUD Routes
+// flyer CRUD Routes
 // =============================================
 
 /**
- * GET /api/flyers
- * Get semua flyers
+ * GET /api/flyer
+ * Get semua flyer
  */
-router.get('/flyers', isAuthenticated, async (req, res) => {
+router.get('/flyer', isAuthenticated, async (req, res) => {
   try {
-    const result = await query('SELECT * FROM flyers ORDER BY created_at DESC');
+    const result = await query('SELECT * FROM flyer ORDER BY created_at DESC');
     res.json({
       success: true,
       data: result
@@ -661,20 +661,20 @@ router.get('/flyers', isAuthenticated, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Gagal memuat data flyers',
+      message: 'Gagal memuat data flyer',
       error: error.message
     });
   }
 });
 
 /**
- * GET /api/flyers/:id
+ * GET /api/flyer/:id
  * Get flyer by ID
  */
-router.get('/flyers/:id', isAuthenticated, async (req, res) => {
+router.get('/flyer/:id', isAuthenticated, async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await query('SELECT * FROM flyers WHERE id_flyer = ?', [id]);
+    const result = await query('SELECT * FROM flyer WHERE id_flyer = ?', [id]);
     
     if (result.length === 0) {
       return res.status(404).json({
@@ -697,10 +697,10 @@ router.get('/flyers/:id', isAuthenticated, async (req, res) => {
 });
 
 /**
- * POST /api/flyers
+ * POST /api/flyer
  * Create new flyer with image upload
  */
-router.post('/flyers', isAuthenticated, upload.single('gambar'), async (req, res) => {
+router.post('/flyer', isAuthenticated, upload.single('gambar'), async (req, res) => {
   try {
     const { nama, keterangan } = req.body;
     
@@ -719,10 +719,10 @@ router.post('/flyers', isAuthenticated, upload.single('gambar'), async (req, res
     }
     
     // Path gambar yang disimpan ke database
-    const gambarPath = `/public/uploads/flyers/${req.file.filename}`;
+    const gambarPath = `/public/uploads/flyer/${req.file.filename}`;
     
     const result = await query(
-      'INSERT INTO flyers (gambar, nama, keterangan) VALUES (?, ?, ?)',
+      'INSERT INTO flyer (gambar, nama, keterangan) VALUES (?, ?, ?)',
       [gambarPath, nama, keterangan || null]
     );
     
@@ -755,16 +755,16 @@ router.post('/flyers', isAuthenticated, upload.single('gambar'), async (req, res
 });
 
 /**
- * PUT /api/flyers/:id
+ * PUT /api/flyer/:id
  * Update flyer (optional image upload)
  */
-router.put('/flyers/:id', isAuthenticated, upload.single('gambar'), async (req, res) => {
+router.put('/flyer/:id', isAuthenticated, upload.single('gambar'), async (req, res) => {
   try {
     const { id } = req.params;
     const { nama, keterangan } = req.body;
     
     // Cek apakah flyer exists
-    const existing = await query('SELECT * FROM flyers WHERE id_flyer = ?', [id]);
+    const existing = await query('SELECT * FROM flyer WHERE id_flyer = ?', [id]);
     if (existing.length === 0) {
       return res.status(404).json({
         success: false,
@@ -776,7 +776,7 @@ router.put('/flyers/:id', isAuthenticated, upload.single('gambar'), async (req, 
     
     // Jika ada file baru, update gambar
     if (req.file) {
-      gambarPath = `/public/uploads/flyers/${req.file.filename}`;
+      gambarPath = `/public/uploads/flyer/${req.file.filename}`;
       
       // Hapus gambar lama
       const oldPath = path.join(__dirname, '../..', existing[0].gambar);
@@ -788,7 +788,7 @@ router.put('/flyers/:id', isAuthenticated, upload.single('gambar'), async (req, 
     }
     
     await query(
-      'UPDATE flyers SET gambar = ?, nama = ?, keterangan = ? WHERE id_flyer = ?',
+      'UPDATE flyer SET gambar = ?, nama = ?, keterangan = ? WHERE id_flyer = ?',
       [gambarPath, nama || existing[0].nama, keterangan || existing[0].keterangan, id]
     );
     
@@ -812,15 +812,15 @@ router.put('/flyers/:id', isAuthenticated, upload.single('gambar'), async (req, 
 });
 
 /**
- * DELETE /api/flyers/:id
+ * DELETE /api/flyer/:id
  * Delete flyer and its image
  */
-router.delete('/flyers/:id', isAuthenticated, async (req, res) => {
+router.delete('/flyer/:id', isAuthenticated, async (req, res) => {
   try {
     const { id } = req.params;
     
     // Get flyer data untuk hapus file
-    const existing = await query('SELECT * FROM flyers WHERE id_flyer = ?', [id]);
+    const existing = await query('SELECT * FROM flyer WHERE id_flyer = ?', [id]);
     if (existing.length === 0) {
       return res.status(404).json({
         success: false,
@@ -829,7 +829,7 @@ router.delete('/flyers/:id', isAuthenticated, async (req, res) => {
     }
     
     // Hapus dari database
-    await query('DELETE FROM flyers WHERE id_flyer = ?', [id]);
+    await query('DELETE FROM flyer WHERE id_flyer = ?', [id]);
     
     // Hapus file gambar
     const imagePath = path.join(__dirname, '../..', existing[0].gambar);
