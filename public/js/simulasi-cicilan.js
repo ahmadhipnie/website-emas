@@ -69,11 +69,18 @@ function hitungSimulasi() {
   }
 
   // Kalkulasi sesuai sistem NON PAYROLL
-  // 1. DP (5%) = 5% × Harga Beli Emas
-  const dp = hargaBeliEmas * 0.05;
+  let dp, pembiayaan;
 
-  // 2. Pembiayaan = Harga Beli Emas – DP
-  const pembiayaan = hargaBeliEmas - dp;
+  // KASUS KHUSUS: Untuk 100 gram, pembiayaan fixed Rp150.000.000
+  if (beratEmas === 100) {
+    pembiayaan = 150000000; // Pembiayaan statis untuk 100 gram
+    dp = hargaBeliEmas - pembiayaan; // DP = Harga Beli - 150.000.000
+  } else {
+    // Untuk berat lain: DP = 5% × Harga Beli Emas
+    dp = hargaBeliEmas * 0.05;
+    // Pembiayaan = Harga Beli Emas – DP
+    pembiayaan = hargaBeliEmas - dp;
+  }
 
   // 3. Adm = 0.25% × Pembiayaan
   const adm = pembiayaan * 0.0025;
