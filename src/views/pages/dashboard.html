@@ -11,6 +11,9 @@
     />
     <link rel="stylesheet" href="/public/css/styles.min.css" />
     <link rel="stylesheet" href="/public/css/spa-transitions.css" />
+    
+    <!-- DataTables CSS (untuk management users) -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
   </head>
 
   <body>
@@ -198,6 +201,20 @@
                   <span class="hide-menu">Laporan</span>
                 </a>
               </li>
+
+              <!-- MASTER ADMIN (Only visible for admin role) -->
+              <li class="nav-small-cap" id="adminMenuSection" style="display: none;">
+                <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
+                <span class="hide-menu">ADMIN</span>
+              </li>
+              <li class="sidebar-item" id="adminMenuItem" style="display: none;">
+                <a class="sidebar-link" href="/management-users" aria-expanded="false">
+                  <span>
+                    <iconify-icon icon="solar:users-group-two-rounded-bold-duotone" class="fs-6"></iconify-icon>
+                  </span>
+                  <span class="hide-menu">Management Users</span>
+                </a>
+              </li>
             </ul>
           </nav>
         </div>
@@ -233,8 +250,6 @@
               <ul
                 class="navbar-nav flex-row ms-auto align-items-center justify-content-end"
               >
-                <a href="/" class="btn btn-outline-primary me-2"
-                  >Back to Home</a
                 >
                 <li class="nav-item dropdown">
                   <a
@@ -278,11 +293,12 @@
                         <i class="ti ti-list-check fs-6"></i>
                         <p class="mb-0 fs-3">My Task</p>
                       </a>
-                      <a
-                        href="/login"
-                        class="btn btn-outline-primary mx-3 mt-2 d-block"
-                        >Logout</a
+                      <button
+                        id="logoutButton"
+                        class="btn btn-outline-primary mx-3 mt-2 d-block w-100"
                       >
+                        <i class="ti ti-logout"></i> Logout
+                      </button>
                     </div>
                   </div>
                 </li>
@@ -935,9 +951,14 @@
     <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/public/libs/apexcharts/dist/apexcharts.min.js"></script>
     <script src="/public/libs/simplebar/dist/simplebar.js"></script>
-    <script src="/public/js/spa-router.js"></script>
+    
+    <!-- DataTables (untuk management users) -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    
     <script src="/public/js/app.min.js"></script>
     <script src="/public/js/dashboard.js"></script>
+    <script src="/public/js/management-users.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
 
     <!-- Gold Price Dashboard -->
@@ -945,5 +966,8 @@
 
     <!-- MVC Integration -->
     <script type="module" src="/src/app.js"></script>
+
+    <!-- Global Auth Handler -->
+    <script src="/public/js/auth-handler.js"></script>
   </body>
 </html>

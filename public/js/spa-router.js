@@ -113,6 +113,13 @@
           setActiveMenu(path);
         }
         
+        // Dispatch custom event untuk page loaded
+        const pageLoadedEvent = new CustomEvent('spa:pageLoaded', {
+          detail: { path: path }
+        });
+        document.dispatchEvent(pageLoadedEvent);
+        console.log('🚀 SPA page loaded:', path);
+        
       } else {
         throw new Error("Content not found");
       }

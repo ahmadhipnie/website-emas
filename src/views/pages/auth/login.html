@@ -31,7 +31,7 @@
               <div class="card mb-0">
                 <div class="card-body">
                   <a
-                    href="/dashboard"
+                    href="/"
                     class="text-nowrap logo-img text-center d-block py-3 w-100"
                   >
                     <span class="d-flex align-items-center justify-content-center gap-2">
@@ -46,27 +46,39 @@
                       >
                     </span>
                   </a>
-                  <p class="text-center">Website EMAS Dashboard</p>
+                  <p class="text-center">Silakan login untuk melanjutkan</p>
+
+                  <!-- Alert untuk error/success message -->
+                  <div id="alertMessage" class="alert alert-dismissible fade" role="alert" style="display: none;">
+                    <span id="alertText"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+
                   <form id="loginForm">
                     <div class="mb-3">
-                      <label for="exampleInputEmail1" class="form-label"
-                        >Username</label
+                      <label for="emailInput" class="form-label"
+                        >Email</label
                       >
                       <input
                         type="email"
                         class="form-control"
-                        id="exampleInputEmail1"
-                        aria-describedby="emailHelp"
+                        id="emailInput"
+                        name="email"
+                        placeholder="email@example.com"
+                        required
                       />
                     </div>
                     <div class="mb-4">
-                      <label for="exampleInputPassword1" class="form-label"
+                      <label for="passwordInput" class="form-label"
                         >Password</label
                       >
                       <input
                         type="password"
                         class="form-control"
-                        id="exampleInputPassword1"
+                        id="passwordInput"
+                        name="password"
+                        placeholder="Masukkan password"
+                        required
                       />
                     </div>
                     <div
@@ -77,31 +89,29 @@
                           class="form-check-input primary"
                           type="checkbox"
                           value=""
-                          id="flexCheckChecked"
-                          checked
+                          id="rememberMe"
                         />
                         <label
                           class="form-check-label text-dark"
-                          for="flexCheckChecked"
-                          >Remember this Device</label
+                          for="rememberMe"
+                          >Ingat saya</label
                         >
                       </div>
                       <a class="text-primary fw-bold" href="#"
-                        >Forgot Password?</a
+                        >Lupa Password?</a
                       >
                     </div>
-                    <a
-                      href="/dashboard"
+                    <button
+                      type="submit"
                       class="btn btn-primary w-100 py-8 fs-4 mb-4"
-                      >Sign In</a
+                      id="loginButton"
                     >
-                    <div
-                      class="d-flex align-items-center justify-content-center"
-                    >
-                      <p class="fs-4 mb-0 fw-bold">New to Website EMAS?</p>
-                      <a class="text-primary fw-bold ms-2" href="/register"
-                        >Create an account</a
-                      >
+                      <span id="loginButtonText">Sign In</span>
+                      <span id="loginSpinner" class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true" style="display: none;"></span>
+                    </button>
+                    
+                    <div class="text-center">
+                      <small class="text-muted">Demo: admin@websiteemas.com / password123</small>
                     </div>
                   </form>
                 </div>
@@ -114,5 +124,95 @@
 
     <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    
+    <script>
+      // Handle login form submission
+      document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('emailInput').value;
+        const password = document.getElementById('passwordInput').value;
+        const loginButton = document.getElementById('loginButton');
+        const loginButtonText = document.getElementById('loginButtonText');
+        const loginSpinner = document.getElementById('loginSpinner');
+
+        // Disable button dan show loading
+        loginButton.disabled = true;
+        loginButtonText.textContent = 'Logging in...';
+        loginSpinner.style.display = 'inline-block';
+
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Show success message
+            showAlert('success', data.message);
+
+            // Redirect ke dashboard setelah 1 detik
+            setTimeout(() => {
+              window.location.href = data.redirect || '/dashboard';
+            }, 1000);
+          } else {
+            // Show error message
+            showAlert('danger', data.message);
+
+            // Enable button kembali
+            loginButton.disabled = false;
+            loginButtonText.textContent = 'Sign In';
+            loginSpinner.style.display = 'none';
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          showAlert('danger', 'Terjadi kesalahan saat login. Silakan coba lagi.');
+
+          // Enable button kembali
+          loginButton.disabled = false;
+          loginButtonText.textContent = 'Sign In';
+          loginSpinner.style.display = 'none';
+        }
+      });
+
+      // Function untuk show alert message
+      function showAlert(type, message) {
+        const alertDiv = document.getElementById('alertMessage');
+        const alertText = document.getElementById('alertText');
+
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertText.textContent = message;
+        alertDiv.style.display = 'block';
+
+        // Auto hide setelah 5 detik
+        setTimeout(() => {
+          alertDiv.style.display = 'none';
+        }, 5000);
+      }
+
+      // Auto fill form jika ada remember me di localStorage
+      window.addEventListener('load', function() {
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        if (rememberedEmail) {
+          document.getElementById('emailInput').value = rememberedEmail;
+          document.getElementById('rememberMe').checked = true;
+        }
+      });
+
+      // Save email jika remember me checked
+      document.getElementById('rememberMe').addEventListener('change', function() {
+        const email = document.getElementById('emailInput').value;
+        if (this.checked && email) {
+          localStorage.setItem('rememberedEmail', email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
+      });
+    </script>
   </body>
 </html>

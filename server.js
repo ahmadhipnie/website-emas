@@ -4,11 +4,14 @@
  */
 
 import express from "express";
+import session from "express-session";
+import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { testConnection } from "./src/config/database.js";
 import apiRoutes from "./src/config/api.js";
+import { isAuthenticated, isGuest, isAdmin } from "./src/middleware/auth.js";
 
 // Load environment variables
 dotenv.config();
@@ -22,6 +25,21 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Session middleware
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'website-emas-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // true di production dengan HTTPS
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 jam
+    }
+  })
+);
 
 // Static files
 app.use("/public", express.static(path.join(__dirname, "public")));
@@ -50,6 +68,9 @@ const routes = {
   "/rab": "operational/rab.html",
   "/laporan": "operational/laporan.html",
 
+  // Admin Module
+  "/management-users": "admin/management-users.html",
+
   // UI Components
   "/ui-alerts": "ui-components/ui-alerts.html",
   "/ui-buttons": "ui-components/ui-buttons.html",
@@ -62,15 +83,37 @@ const routes = {
   "/sample-page": "sample-page.html",
 };
 
+// Public routes (tidak perlu login)
+const publicRoutes = ["/", "/login", "/register"];
+
+// Admin only routes
+const adminOnlyRoutes = ["/management-users"];
+
 // Views directory
 const viewsDir = path.join(__dirname, "src", "views", "pages");
 
 // API Routes
 app.use('/api', apiRoutes);
 
-// Handle routes
+// Handle routes dengan authentication check
 Object.entries(routes).forEach(([route, file]) => {
-  app.get(route, (req, res) => {
+  // Tentukan middleware berdasarkan jenis route
+  let middleware = [];
+  
+  if (publicRoutes.includes(route)) {
+    // Public routes - guest only untuk login/register
+    if (route === "/login" || route === "/register") {
+      middleware = [isGuest];
+    }
+  } else if (adminOnlyRoutes.includes(route)) {
+    // Admin only routes
+    middleware = [isAuthenticated, isAdmin];
+  } else {
+    // Protected routes - authentication required
+    middleware = [isAuthenticated];
+  }
+
+  app.get(route, ...middleware, (req, res) => {
     const filePath = path.join(viewsDir, file);
     console.log(`📄 Serving ${route} → ${filePath}`);
     res.sendFile(filePath, (err) => {
