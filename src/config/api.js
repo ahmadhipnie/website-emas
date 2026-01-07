@@ -10,6 +10,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { query } from '../config/database.js';
+import { manualFetch, getManualRefreshStatus } from '../config/gold-scheduler.js';
 import AuthController from '../controllers/AuthController.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 
@@ -445,250 +446,199 @@ router.get('/tables', async (req, res) => {
   }
 });
 
-// =============================================
-// Flyer Management Routes
-// =============================================
-
 /**
- * GET /api/flyers
- * Get all flyers
+ * GET /api/emas/structure
+ * Cek struktur table emas
  */
-router.get('/flyers', isAuthenticated, async (req, res) => {
+router.get('/emas/structure', async (req, res) => {
   try {
-    const flyers = await query(
-      'SELECT * FROM flyers ORDER BY created_at DESC'
-    );
-
+    const columns = await query('DESCRIBE emas');
     res.json({
       success: true,
-      data: flyers
+      data: columns
     });
   } catch (error) {
-    console.error('Error fetching flyers:', error);
     res.status(500).json({
       success: false,
-      message: 'Gagal memuat data flyers'
+      message: 'Failed to get table structure',
+      error: error.message
     });
   }
 });
 
 /**
- * GET /api/flyers/:id
- * Get single flyer by ID
+ * GET /api/emas/latest
+ * Get harga emas terbaru
  */
-router.get('/flyers/:id', isAuthenticated, async (req, res) => {
+router.get('/emas/latest', async (req, res) => {
   try {
-    const { id } = req.params;
-    const flyers = await query(
-      'SELECT * FROM flyers WHERE id_flyer = ?',
-      [id]
-    );
-
-    if (flyers.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Flyer tidak ditemukan'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: flyers[0]
-    });
-  } catch (error) {
-    console.error('Error fetching flyer:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Gagal memuat data flyer'
-    });
-  }
-});
-
-/**
- * POST /api/flyers
- * Create new flyer (with image upload)
- */
-router.post('/flyers', isAuthenticated, upload.single('gambar'), async (req, res) => {
-  try {
-    const { nama, keterangan } = req.body;
-
-    // Validasi input
-    if (!nama || !req.file) {
-      // Hapus file jika ada
-      if (req.file) {
-        await fs.unlink(req.file.path).catch(console.error);
-      }
-      return res.status(400).json({
-        success: false,
-        message: 'Nama dan gambar harus diisi'
-      });
-    }
-
-    // Insert ke database
     const result = await query(
-      'INSERT INTO flyers (gambar, nama, keterangan) VALUES (?, ?, ?)',
-      [req.file.filename, nama, keterangan || '']
+      'SELECT id_emas, timestamp, currency, metal, unit, price, ask, bid, high, low, change_value, change_percent FROM emas ORDER BY timestamp DESC LIMIT 1'
     );
+    res.json({
+      success: true,
+      data: result[0] || null
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get latest gold price',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/emas/history
+ * Get histori harga emas
+ * Query params: limit (default 30), unit (toz/gram)
+ */
+router.get('/emas/history', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 30;
+
+    const result = await query(
+      `SELECT id_emas, timestamp, currency, metal, unit, price, ask, bid, high, low, change_value, change_percent FROM emas ORDER BY timestamp DESC LIMIT ${limit}`
+    );
+    res.json({
+      success: true,
+      data: result.reverse() // Urutkan ascending untuk chart
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get gold history',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/emas/fetch
+ * Fetch harga emas dari API dan simpan ke database
+ * HATI-HATI: Rate limit 100 request/bulan
+ * Manual refresh: Maksimal 10x/bulan
+ */
+router.post('/emas/fetch', async (req, res) => {
+  try {
+    // Gunakan manualFetch dari scheduler (dengan limit 10x/bulan)
+    const result = await manualFetch();
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Harga emas berhasil diperbarui!',
+        data: result.data
+      });
+    } else {
+      // Handle error dari manualFetch
+      const statusCode = result.error === 'RATE_LIMIT_EXCEEDED' || result.error === 'API_LIMIT_EXCEEDED' ? 429 : 400;
+
+      res.status(statusCode).json({
+        success: false,
+        message: result.message,
+        error: result.error,
+        manualLimit: result.manualLimit
+      });
+    }
+  } catch (error) {
+    // Cek jika error karena network/limit
+    const errorMessage = error.message.toLowerCase();
+    if (errorMessage.includes('enoent') || errorMessage.includes('fetch failed') || errorMessage.includes('econnrefused')) {
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal terhubung ke API metals.dev. Periksa koneksi internet Anda.',
+        error: 'CONNECTION_ERROR'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch gold price',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/emas/manual-refresh-status
+ * Cek sisa kuota manual refresh
+ */
+router.get('/emas/manual-refresh-status', async (_req, res) => {
+  try {
+    const status = await getManualRefreshStatus();
 
     res.json({
       success: true,
-      message: 'Flyer berhasil ditambahkan',
+      data: status
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get manual refresh status',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/emas/stats
+ * Get statistik harga emas (ringkasan untuk dashboard)
+ */
+router.get('/emas/stats', async (req, res) => {
+  try {
+    const stats = await query(`
+      SELECT
+        COUNT(*) as total_records,
+        MIN(timestamp) as first_record,
+        MAX(timestamp) as last_record
+      FROM emas
+    `);
+
+    const latest = await query(`
+      SELECT id_emas, timestamp, currency, metal, unit, price, ask, bid, high, low, change_value, change_percent
+      FROM emas
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `);
+
+    res.json({
+      success: true,
       data: {
-        id_flyer: result.insertId,
-        gambar: req.file.filename,
-        nama,
-        keterangan
+        stats: stats[0],
+        latest: latest[0] || null
       }
     });
   } catch (error) {
-    console.error('Error creating flyer:', error);
-    
-    // Hapus file jika terjadi error
-    if (req.file) {
-      await fs.unlink(req.file.path).catch(console.error);
-    }
-    
     res.status(500).json({
       success: false,
-      message: 'Gagal menambahkan flyer'
+      message: 'Failed to get gold stats',
+      error: error.message
     });
   }
 });
 
 /**
- * PUT /api/flyers/:id
- * Update flyer (optional image upload)
+ * GET /api/emas/usage
+ * Get API usage dari metals.dev
  */
-router.put('/flyers/:id', isAuthenticated, upload.single('gambar'), async (req, res) => {
+router.get('/emas/usage', async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    const { nama, keterangan } = req.body;
+    const apiKey = process.env.METALS_API_KEY || 'QWTJB0KX5AH01IVHGVVQ846VHGVVQ';
+    const apiUrl = `https://api.metals.dev/usage?api_key=${apiKey}`;
 
-    // Validasi ID
-    if (isNaN(id) || id <= 0) {
-      if (req.file) {
-        await fs.unlink(req.file.path).catch(console.error);
-      }
-      return res.status(400).json({
-        success: false,
-        message: 'ID flyer tidak valid'
-      });
-    }
-
-    // Validasi input
-    if (!nama) {
-      if (req.file) {
-        await fs.unlink(req.file.path).catch(console.error);
-      }
-      return res.status(400).json({
-        success: false,
-        message: 'Nama harus diisi'
-      });
-    }
-
-    // Check apakah flyer exists
-    const existingFlyer = await query(
-      'SELECT * FROM flyers WHERE id_flyer = ?',
-      [id]
-    );
-
-    if (existingFlyer.length === 0) {
-      if (req.file) {
-        await fs.unlink(req.file.path).catch(console.error);
-      }
-      return res.status(404).json({
-        success: false,
-        message: 'Flyer tidak ditemukan'
-      });
-    }
-
-    // Build update query
-    let updateQuery = 'UPDATE flyers SET nama = ?, keterangan = ?';
-    let params = [nama, keterangan || ''];
-
-    // Jika ada file baru, update gambar dan hapus file lama
-    if (req.file) {
-      updateQuery += ', gambar = ?';
-      params.push(req.file.filename);
-      
-      // Hapus file lama
-      const oldFilePath = path.join(__dirname, '../../public/uploads/flyers', existingFlyer[0].gambar);
-      await fs.unlink(oldFilePath).catch(err => {
-        console.warn('Could not delete old file:', err.message);
-      });
-    }
-
-    updateQuery += ', updated_at = NOW() WHERE id_flyer = ?';
-    params.push(id);
-
-    await query(updateQuery, params);
+    const response = await fetch(apiUrl);
+    const data = await response.json();
 
     res.json({
       success: true,
-      message: 'Flyer berhasil diupdate'
+      data: data
     });
   } catch (error) {
-    console.error('Error updating flyer:', error);
-    
-    // Hapus file baru jika terjadi error
-    if (req.file) {
-      await fs.unlink(req.file.path).catch(console.error);
-    }
-    
     res.status(500).json({
       success: false,
-      message: 'Gagal mengupdate flyer'
-    });
-  }
-});
-
-/**
- * DELETE /api/flyers/:id
- * Delete flyer
- */
-router.delete('/flyers/:id', isAuthenticated, async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-
-    // Validasi ID
-    if (isNaN(id) || id <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'ID flyer tidak valid'
-      });
-    }
-
-    // Check apakah flyer exists
-    const existingFlyer = await query(
-      'SELECT * FROM flyers WHERE id_flyer = ?',
-      [id]
-    );
-
-    if (existingFlyer.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Flyer tidak ditemukan'
-      });
-    }
-
-    // Delete from database
-    await query('DELETE FROM flyers WHERE id_flyer = ?', [id]);
-
-    // Delete file
-    const filePath = path.join(__dirname, '../../public/uploads/flyers', existingFlyer[0].gambar);
-    await fs.unlink(filePath).catch(err => {
-      console.warn('Could not delete file:', err.message);
-    });
-
-    res.json({
-      success: true,
-      message: 'Flyer berhasil dihapus'
-    });
-  } catch (error) {
-    console.error('Error deleting flyer:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Gagal menghapus flyer'
+      message: 'Failed to get API usage',
+      error: error.message
     });
   }
 });
