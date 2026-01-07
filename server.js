@@ -6,12 +6,22 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import { testConnection } from "./src/config/database.js";
+import apiRoutes from "./src/config/api.js";
+
+// Load environment variables
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Static files
 app.use("/public", express.static(path.join(__dirname, "public")));
@@ -54,6 +64,9 @@ const routes = {
 
 // Views directory
 const viewsDir = path.join(__dirname, "src", "views", "pages");
+
+// API Routes
+app.use('/api', apiRoutes);
 
 // Handle routes
 Object.entries(routes).forEach(([route, file]) => {
@@ -125,12 +138,17 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log("");
   console.log("🚀 =============================================");
   console.log("   Website EMAS - MVC Architecture");
   console.log("   =============================================");
   console.log("");
+  
+  // Test database connection
+  await testConnection();
+  console.log("");
+  
   console.log("   Server running at:");
   console.log(`   → Local:   http://localhost:${PORT}`);
   console.log("");
