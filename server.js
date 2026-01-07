@@ -29,7 +29,7 @@ app.use("/src", express.static(path.join(__dirname, "src")));
 
 // Route mapping for clean URLs
 const routes = {
-  "/": "index.html",
+  "/": "auth/login.html",  // Default route to login
 
   // Authentication
   "/login": "auth/login.html",
@@ -113,14 +113,6 @@ app.get("/debug/routes", (req, res) => {
     routes: routeList
   });
 });
-
-// Fallback for landing page
-app.get("/landing", (req, res) => {
-  res.sendFile(path.join(__dirname, "landing", "index.html"));
-});
-
-// Serve landing assets
-app.use("/landing", express.static(path.join(__dirname, "landing")));
 
 // 404 handler
 app.use((req, res) => {
