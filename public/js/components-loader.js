@@ -176,13 +176,24 @@ async function loadHeader() {
 }
 
 /**
+ * Load footer component
+ */
+async function loadFooter() {
+  const loaded = await loadComponent('/src/views/components/footer.html', '#footer-container', () => {
+    console.log('✅ Footer loaded');
+  });
+  return loaded;
+}
+
+/**
  * Load all common components (sidebar + header)
  * @param {string} activePage - Nama halaman aktif
  */
 async function loadCommonComponents(activePage) {
   await Promise.all([
     loadSidebar(activePage),
-    loadHeader()
+    loadHeader(),
+    loadFooter()
   ]);
   
   console.log('✅ All components loaded');
