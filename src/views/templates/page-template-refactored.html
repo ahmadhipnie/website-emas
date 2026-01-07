@@ -1,46 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Simulasi Cicilan Emas - Website EMAS</title>
+    <title>Dashboard - Website EMAS</title>
     <link rel="shortcut icon" type="image/png" href="/public/images/logos/seodashlogo.png" />
     <link rel="stylesheet" href="/public/css/styles.min.css" />
-    <link rel="stylesheet" href="/public/css/spa-transitions.css" />
-</head>
-<body>
+  </head>
+
+  <body>
+    <!--  Body Wrapper -->
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
-        <!-- Sidebar Start -->
-        <!-- Sidebar Container - Loaded dynamically -->
+      
+      <!-- Sidebar Container - Will be loaded dynamically -->
       <div id="sidebar-container"></div>
-      <!--  Sidebar End -->
-        
-        <!-- Main wrapper -->
-        <div class="body-wrapper">
-            <!-- Header Container - Loaded dynamically -->
+
+      <!--  Main wrapper -->
+      <div class="body-wrapper">
+        <!-- Header Container - Will be loaded dynamically -->
         <div id="header-container"></div>
-        <!--  Header End -->
-            
-            <div class="container-fluid">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title fw-semibold mb-4">Simulasi Cicilan Emas</h5>
-                        <p class="mb-0">Halaman untuk simulasi cicilan pembelian emas.</p>
-                        <p class="text-muted">Konten halaman ini akan dikembangkan sesuai kebutuhan bisnis.</p>
-                    </div>
-                </div>
+
+        <div class="container-fluid">
+          <!-- Page Content Goes Here -->
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title fw-semibold mb-4">Page Title</h5>
+              <p class="mb-0">Page content here...</p>
             </div>
+          </div>
         </div>
+      </div>
     </div>
-    
+
+    <!-- Core Scripts -->
     <script src="/public/libs/jquery/dist/jquery.min.js"></script>
     <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/public/libs/simplebar/dist/simplebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
-
-    <!-- Components Loader -->
+    
+    <!-- Components Loader - Load sidebar & header -->
     <script src="/public/js/components-loader.js"></script>
     <script>
+      // Load sidebar and header when page loads
       document.addEventListener('DOMContentLoaded', function() {
         loadCommonComponents();
       });

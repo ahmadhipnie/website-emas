@@ -34,7 +34,7 @@ function initializeFlyer() {
       dataSrc: 'data',
       error: function(xhr, error, code) {
         console.error('DataTables Ajax Error:', error);
-        alert('Gagal memuat data flyers');
+        alert('Gagal memuat data flyers. Pastikan tabel flyers sudah dibuat di database.');
       }
     },
     columns: [
@@ -43,7 +43,8 @@ function initializeFlyer() {
         data: 'gambar',
         orderable: false,
         render: function(data, type, row) {
-          return `<img src="/public/uploads/flyers/${data}" alt="${row.nama}" class="flyer-thumbnail">`;
+          // Path sudah lengkap dari database, langsung gunakan
+          return `<img src="${data}" alt="${row.nama}" class="flyer-thumbnail" style="max-width: 100px; max-height: 60px; object-fit: cover;">`;
         }
       },
       { data: 'nama' },
