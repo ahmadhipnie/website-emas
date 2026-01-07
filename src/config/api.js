@@ -5,11 +5,62 @@
 
 import express from 'express';
 import bcrypt from 'bcrypt';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
 import { query } from '../config/database.js';
 import AuthController from '../controllers/AuthController.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const router = express.Router();
+
+// =============================================
+// Multer Configuration untuk Upload Gambar
+// =============================================
+
+// Storage configuration
+const storage = multer.diskStorage({
+  destination: async function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../../public/uploads/flyers');
+    // Pastikan folder exists
+    try {
+      await fs.mkdir(uploadPath, { recursive: true });
+    } catch (error) {
+      console.error('Error creating upload directory:', error);
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename: timestamp-random-originalname
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const nameWithoutExt = path.basename(file.originalname, ext);
+    cb(null, nameWithoutExt + '-' + uniqueSuffix + ext);
+  }
+});
+
+// File filter - hanya terima gambar
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|gif/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb(new Error('Hanya file gambar (JPEG, PNG, GIF) yang diperbolehkan!'));
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: fileFilter
+});
 
 // =============================================
 // Authentication Routes
@@ -394,6 +445,252 @@ router.get('/tables', async (req, res) => {
   }
 });
 
+// =============================================
+// Flyer Management Routes
+// =============================================
 
+/**
+ * GET /api/flyers
+ * Get all flyers
+ */
+router.get('/flyers', isAuthenticated, async (req, res) => {
+  try {
+    const flyers = await query(
+      'SELECT * FROM flyers ORDER BY created_at DESC'
+    );
+
+    res.json({
+      success: true,
+      data: flyers
+    });
+  } catch (error) {
+    console.error('Error fetching flyers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memuat data flyers'
+    });
+  }
+});
+
+/**
+ * GET /api/flyers/:id
+ * Get single flyer by ID
+ */
+router.get('/flyers/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const flyers = await query(
+      'SELECT * FROM flyers WHERE id_flyer = ?',
+      [id]
+    );
+
+    if (flyers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Flyer tidak ditemukan'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: flyers[0]
+    });
+  } catch (error) {
+    console.error('Error fetching flyer:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memuat data flyer'
+    });
+  }
+});
+
+/**
+ * POST /api/flyers
+ * Create new flyer (with image upload)
+ */
+router.post('/flyers', isAuthenticated, upload.single('gambar'), async (req, res) => {
+  try {
+    const { nama, keterangan } = req.body;
+
+    // Validasi input
+    if (!nama || !req.file) {
+      // Hapus file jika ada
+      if (req.file) {
+        await fs.unlink(req.file.path).catch(console.error);
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'Nama dan gambar harus diisi'
+      });
+    }
+
+    // Insert ke database
+    const result = await query(
+      'INSERT INTO flyers (gambar, nama, keterangan) VALUES (?, ?, ?)',
+      [req.file.filename, nama, keterangan || '']
+    );
+
+    res.json({
+      success: true,
+      message: 'Flyer berhasil ditambahkan',
+      data: {
+        id_flyer: result.insertId,
+        gambar: req.file.filename,
+        nama,
+        keterangan
+      }
+    });
+  } catch (error) {
+    console.error('Error creating flyer:', error);
+    
+    // Hapus file jika terjadi error
+    if (req.file) {
+      await fs.unlink(req.file.path).catch(console.error);
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan flyer'
+    });
+  }
+});
+
+/**
+ * PUT /api/flyers/:id
+ * Update flyer (optional image upload)
+ */
+router.put('/flyers/:id', isAuthenticated, upload.single('gambar'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { nama, keterangan } = req.body;
+
+    // Validasi ID
+    if (isNaN(id) || id <= 0) {
+      if (req.file) {
+        await fs.unlink(req.file.path).catch(console.error);
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'ID flyer tidak valid'
+      });
+    }
+
+    // Validasi input
+    if (!nama) {
+      if (req.file) {
+        await fs.unlink(req.file.path).catch(console.error);
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'Nama harus diisi'
+      });
+    }
+
+    // Check apakah flyer exists
+    const existingFlyer = await query(
+      'SELECT * FROM flyers WHERE id_flyer = ?',
+      [id]
+    );
+
+    if (existingFlyer.length === 0) {
+      if (req.file) {
+        await fs.unlink(req.file.path).catch(console.error);
+      }
+      return res.status(404).json({
+        success: false,
+        message: 'Flyer tidak ditemukan'
+      });
+    }
+
+    // Build update query
+    let updateQuery = 'UPDATE flyers SET nama = ?, keterangan = ?';
+    let params = [nama, keterangan || ''];
+
+    // Jika ada file baru, update gambar dan hapus file lama
+    if (req.file) {
+      updateQuery += ', gambar = ?';
+      params.push(req.file.filename);
+      
+      // Hapus file lama
+      const oldFilePath = path.join(__dirname, '../../public/uploads/flyers', existingFlyer[0].gambar);
+      await fs.unlink(oldFilePath).catch(err => {
+        console.warn('Could not delete old file:', err.message);
+      });
+    }
+
+    updateQuery += ', updated_at = NOW() WHERE id_flyer = ?';
+    params.push(id);
+
+    await query(updateQuery, params);
+
+    res.json({
+      success: true,
+      message: 'Flyer berhasil diupdate'
+    });
+  } catch (error) {
+    console.error('Error updating flyer:', error);
+    
+    // Hapus file baru jika terjadi error
+    if (req.file) {
+      await fs.unlink(req.file.path).catch(console.error);
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengupdate flyer'
+    });
+  }
+});
+
+/**
+ * DELETE /api/flyers/:id
+ * Delete flyer
+ */
+router.delete('/flyers/:id', isAuthenticated, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+
+    // Validasi ID
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID flyer tidak valid'
+      });
+    }
+
+    // Check apakah flyer exists
+    const existingFlyer = await query(
+      'SELECT * FROM flyers WHERE id_flyer = ?',
+      [id]
+    );
+
+    if (existingFlyer.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Flyer tidak ditemukan'
+      });
+    }
+
+    // Delete from database
+    await query('DELETE FROM flyers WHERE id_flyer = ?', [id]);
+
+    // Delete file
+    const filePath = path.join(__dirname, '../../public/uploads/flyers', existingFlyer[0].gambar);
+    await fs.unlink(filePath).catch(err => {
+      console.warn('Could not delete file:', err.message);
+    });
+
+    res.json({
+      success: true,
+      message: 'Flyer berhasil dihapus'
+    });
+  } catch (error) {
+    console.error('Error deleting flyer:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menghapus flyer'
+    });
+  }
+});
 
 export default router;
