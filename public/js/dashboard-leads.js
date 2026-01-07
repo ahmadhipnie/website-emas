@@ -114,7 +114,7 @@ async function loadLeadsSummary() {
 
     // Ambil top 4 status untuk ditampilkan di cards
     const topStatuses = statusList.slice(0, 4);
-    const cardContainer = document.querySelector('.leads-summary-cards');
+    const cardContainer = document.querySelector('.leads-summary-cards .row');
 
     if (cardContainer && topStatuses.length > 0) {
       // Generate cards untuk top 4 status
@@ -166,7 +166,7 @@ async function loadLeadsSummary() {
         `;
       }
 
-      cardContainer.innerHTML = `<div class="row">${cardsHTML}</div>`;
+      cardContainer.innerHTML = cardsHTML;
     }
 
   } catch (error) {
