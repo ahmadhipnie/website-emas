@@ -70,7 +70,6 @@ async function fetchGoldPrice() {
       // Handle manual limit exceeded
       if (result.error === "MANUAL_LIMIT_EXCEEDED") {
         showToast(`⚠️ ${result.message}`, "error");
-        updateManualRefreshStatus();
         return;
       }
 
@@ -216,8 +215,11 @@ async function updateChart() {
       return;
     }
 
+    // Ambil 10 data terakhir untuk ditampilkan di chart
+    const displayData = history.slice(-10);
+
     // Prepare chart data
-    const labels = history.map((d) => {
+    const labels = displayData.map((d) => {
       const date = new Date(d.timestamp);
       return date.toLocaleDateString("id-ID", {
         day: "2-digit",
@@ -226,9 +228,9 @@ async function updateChart() {
     });
 
     // Konversi harga ke gram jika perlu
-    const prices = history.map((d) => getPrice(d, "price"));
-    const asks = history.map((d) => getPrice(d, "ask"));
-    const bids = history.map((d) => getPrice(d, "bid"));
+    const prices = displayData.map((d) => getPrice(d, "price"));
+    const asks = displayData.map((d) => getPrice(d, "ask"));
+    const bids = displayData.map((d) => getPrice(d, "bid"));
 
     // Render chart
     renderGoldChart(labels, prices, asks, bids);
@@ -388,44 +390,7 @@ function showErrorMessage(message) {
   }
 }
 
-// Update Manual Refresh Status
-async function updateManualRefreshStatus() {
-  try {
-    const response = await fetch("/api/emas/manual-refresh-status");
-    const result = await response.json();
-
-    if (!result.success) {
-      console.error("Failed to fetch manual refresh status:", result?.message);
-      return;
-    }
-
-    const data = result.data;
-
-    // Update manual refresh status element
-    const statusEl = document.getElementById("manual-refresh-status");
-    if (statusEl) {
-      const { count, limit, remaining, exceeded } = data;
-
-      if (exceeded) {
-        statusEl.innerHTML = `
-          <span class="text-danger">
-            <iconify-icon icon="solar:shield-cross-bold-duotone" class="fs-5 me-1"></iconify-icon>
-            Manual refresh: ${count}/${limit} (habis)
-          </span>
-        `;
-      } else {
-        statusEl.innerHTML = `
-          <span class="text-muted">
-            <iconify-icon icon="solar:refresh-circle-bold-duotone" class="fs-5 me-1"></iconify-icon>
-            Manual refresh: ${count}/${limit} (${remaining} tersisa)
-          </span>
-        `;
-      }
-    }
-  } catch (error) {
-    console.error("Error updating manual refresh status:", error);
-  }
-}
+// Manual refresh status endpoint removed — client no longer requests it.
 
 // Update API Usage
 async function updateApiUsage() {
@@ -497,33 +462,92 @@ async function updateApiUsage() {
           : "bg-success");
     }
 
-    // Update manual refresh status juga
-    updateManualRefreshStatus();
+    // manual refresh status endpoint calls removed (client won't request it)
   } catch (error) {
     console.error("Error updating API usage:", error);
   }
 }
 
-// Initialize on page load
-document.addEventListener("DOMContentLoaded", function () {
+// Function to initialize dashboard
+function initializeDashboard() {
   // Check if we're on the dashboard page
   if (document.getElementById("gold-price-chart")) {
+    console.log('Initializing dashboard...');
     updateDashboard();
 
     // Setup toggle unit button
     const toggleBtn = document.getElementById("toggle-unit-btn");
     if (toggleBtn) {
+      // Remove existing listener to avoid duplicates
+      toggleBtn.removeEventListener("click", toggleUnit);
       toggleBtn.addEventListener("click", toggleUnit);
     }
 
     // Setup refresh button
     const refreshBtn = document.getElementById("refresh-gold-btn");
     if (refreshBtn) {
+      // Remove existing listener to avoid duplicates
+      refreshBtn.removeEventListener("click", debounce(fetchGoldPrice, 1500));
       // Wrap fetchGoldPrice with a short debounce (1.5s) to prevent rapid repeated clicks
       refreshBtn.addEventListener("click", debounce(fetchGoldPrice, 1500));
     }
   }
+}
+
+// Initialize on page load
+document.addEventListener("DOMContentLoaded", function () {
+  initializeDashboard();
 });
+
+// Detect SPA navigation and reinitialize dashboard
+// This handles navigation when returning to dashboard from other pages
+let lastUrl = location.href;
+new MutationObserver(() => {
+  const url = location.href;
+  if (url !== lastUrl) {
+    lastUrl = url;
+    // Check if dashboard is now visible
+    if (document.getElementById("gold-price-chart")) {
+      console.log('Dashboard detected after navigation, reinitializing...');
+      // Small delay to ensure DOM is fully updated
+      setTimeout(() => {
+        initializeDashboard();
+      }, 100);
+    }
+  }
+}).observe(document, { subtree: true, childList: true });
+
+// Also observe for when dashboard content is added/removed
+const dashboardObserver = new MutationObserver((_mutations) => {
+  // Check if gold-price-chart was added to DOM
+  const chartElement = document.getElementById("gold-price-chart");
+  if (chartElement && !goldChart) {
+    console.log('Dashboard chart element detected, initializing...');
+    // Clear any existing timeout to avoid duplicate initialization
+    if (window.dashboardInitTimeout) {
+      clearTimeout(window.dashboardInitTimeout);
+    }
+    // Small delay to ensure all dashboard elements are loaded
+    window.dashboardInitTimeout = setTimeout(() => {
+      initializeDashboard();
+    }, 150);
+  }
+});
+
+// Start observing when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    dashboardObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  });
+} else {
+  dashboardObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
 
 // Export functions for global access
 window.fetchGoldPrice = fetchGoldPrice;
