@@ -1,209 +1,428 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Simulasi Cicilan Emas - Website EMAS</title>
-    <link rel="shortcut icon" type="image/png" href="/public/images/logos/seodashlogo.png" />
+    <title>Simulasi Cicilan Emas - BSIMOMS</title>
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="/public/images/logos/seodashlogo.png"
+    />
     <link rel="stylesheet" href="/public/css/styles.min.css" />
     <link rel="stylesheet" href="/public/css/spa-transitions.css" />
-</head>
-<body>
-    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
-        <!-- Sidebar Start -->
-        <aside class="left-sidebar">
-            <div>
-                <div class="brand-logo d-flex align-items-center justify-content-between">
-                    <a href="/dashboard" class="text-nowrap logo-img d-flex align-items-center gap-2" aria-label="Website Emas">
-                        <span class="d-flex align-items-center gap-2">
-                            <iconify-icon icon="fa-solid:coins" style="color:#d4af37" class="fs-4" aria-hidden="true"></iconify-icon>
-                            <span class="brand-text fw-semibold fs-4 ms-1">Website Emas</span>
-                        </span>
-                    </a>
-                    <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
-                        <i class="ti ti-x fs-8"></i>
-                    </div>
-                </div>
-                <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
-                    <ul id="sidebarnav">
-                        <li class="nav-small-cap"><i class="ti ti-dots nav-small-cap-icon fs-6"></i><span class="hide-menu">MASTER HOME</span></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/dashboard"><span><iconify-icon icon="solar:home-smile-bold-duotone" class="fs-6"></iconify-icon></span><span class="hide-menu">Dashboard</span></a></li>
-
-                        <li class="nav-small-cap"><i class="ti ti-dots nav-small-cap-icon fs-6"></i><span class="hide-menu">MODUL MARKETING</span></li>
-                        <li class="sidebar-item"><a class="sidebar-link active" href="/simulasi-cicilan"><span><iconify-icon icon="solar:calculator-minimalistic-bold-duotone" class="fs-6"></iconify-icon></span><span class="hide-menu">Simulasi Cicilan Emas</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/lead-management"><span><iconify-icon icon="solar:users-group-rounded-bold-duotone" class="fs-6"></iconify-icon></span><span class="hide-menu">Lead Management</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/kalkulator-griya"><span><iconify-icon icon="solar:home-2-bold-duotone" class="fs-6"></iconify-icon></span><span class="hide-menu">Kalkulator Griya</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/kalkulator-premi"><span><iconify-icon icon="solar:shield-check-bold-duotone" class="fs-6"></iconify-icon></span><span class="hide-menu">Kalkulator Premi</span></a></li>
-
-                        <li class="nav-small-cap"><i class="ti ti-dots nav-small-cap-icon fs-6"></i><span class="hide-menu">MODUL OPERASIONAL</span></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/calendar-event"><span><iconify-icon icon="solar:calendar-bold-duotone" class="fs-6"></iconify-icon></span><span class="hide-menu">Calendar Event</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/stock-inventaris"><span><iconify-icon icon="solar:box-bold-duotone" class="fs-6"></iconify-icon></span><span class="hide-menu">Stock Inventaris</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/rab"><span><iconify-icon icon="solar:document-text-bold-duotone" class="fs-6"></iconify-icon></span><span class="hide-menu">RAB</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/laporan"><span><iconify-icon icon="solar:clipboard-list-bold-duotone" class="fs-6"></iconify-icon></span><span class="hide-menu">Laporan</span></a></li>
-
-                        <!-- Admin Section (hidden by default, shown if user is admin) -->
-                        <li class="nav-small-cap" id="adminMenuSection" style="display: none;">
-                            <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
-                            <span class="hide-menu">ADMIN</span>
-                        </li>
-                        <li class="sidebar-item" id="adminMenuItem" style="display: none;">
-                            <a class="sidebar-link" href="/management-users">
-                                <span><iconify-icon icon="solar:users-group-two-rounded-bold-duotone" class="fs-6"></iconify-icon></span>
-                                <span class="hide-menu">Management Users</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+  </head>
+  <body>
+    <div
+      class="page-wrapper"
+      id="main-wrapper"
+      data-layout="vertical"
+      data-navbarbg="skin6"
+      data-sidebartype="full"
+      data-sidebar-position="fixed"
+      data-header-position="fixed"
+    >
+      <!-- Sidebar Start -->
+      <aside class="left-sidebar">
+        <div>
+          <div
+            class="brand-logo d-flex align-items-center justify-content-between"
+          >
+            <a
+              href="/dashboard"
+              class="text-nowrap logo-img d-flex flex-column align-items-center"
+              aria-label="BSIMOMS"
+            >
+              <img src="/public/images/logos/Bank_Syariah_Indonesia.svg" alt="Bank Syariah Indonesia" style="height: 40px; width: auto;">
+              <span class="brand-text fw-semibold fs-4 mt-2">BSIMOMS</span>
+            </a>
+            <div
+              class="close-btn d-xl-none d-block sidebartoggler cursor-pointer"
+              id="sidebarCollapse"
+            >
+              <i class="ti ti-x fs-8"></i>
             </div>
-        </aside>
+          </div>
+          <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
+            <ul id="sidebarnav">
+              <li class="nav-small-cap">
+                <i class="ti ti-dots nav-small-cap-icon fs-6"></i
+                ><span class="hide-menu">MASTER HOME</span>
+              </li>
+              <li class="sidebar-item">
+                <a class="sidebar-link" href="/dashboard"
+                  ><span
+                    ><iconify-icon
+                      icon="solar:home-smile-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon></span
+                  ><span class="hide-menu">Dashboard</span></a
+                >
+              </li>
 
-        <!-- Main wrapper -->
-        <div class="body-wrapper">
-            <header class="app-header">
-                <nav class="navbar navbar-expand-lg navbar-light">
-                    <ul class="navbar-nav">
-                        <li class="nav-item d-block d-xl-none">
-                            <a class="nav-link sidebartoggler nav-icon-hover" id="headerCollapse" href="javascript:void(0)">
-                                <i class="ti ti-menu-2"></i>
-                            </a>
-                        </li>
-                    </ul>
-                    <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
-                        <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="/public/images/profile/user-1.jpg" alt="" width="35" height="35" class="rounded-circle" />
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up" aria-labelledby="drop2">
-                                    <div class="message-body">
-                                        <a href="javascript:void(0)" class="d-flex align-items-center gap-2 dropdown-item">
-                                            <i class="ti ti-user fs-6"></i>
-                                            <p class="mb-0 fs-3">My Profile</p>
-                                        </a>
-                                        <a href="javascript:void(0)" class="d-flex align-items-center gap-2 dropdown-item">
-                                            <i class="ti ti-mail fs-6"></i>
-                                            <p class="mb-0 fs-3">My Account</p>
-                                        </a>
-                                        <a href="javascript:void(0)" class="d-flex align-items-center gap-2 dropdown-item">
-                                            <i class="ti ti-list-check fs-6"></i>
-                                            <p class="mb-0 fs-3">My Task</p>
-                                        </a>
-                                        <button id="logoutButton" class="btn btn-outline-primary mx-3 mt-2 d-block w-100">
-                                            <i class="ti ti-logout"></i> Logout
-                                        </button>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
-            </header>
+              <li class="nav-small-cap">
+                <i class="ti ti-dots nav-small-cap-icon fs-6"></i
+                ><span class="hide-menu">MODUL MARKETING</span>
+              </li>
+              <li class="sidebar-item">
+                <a class="sidebar-link active" href="/simulasi-cicilan"
+                  ><span
+                    ><iconify-icon
+                      icon="solar:calculator-minimalistic-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon></span
+                  ><span class="hide-menu">Simulasi Cicilan Emas</span></a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a class="sidebar-link" href="/lead-management"
+                  ><span
+                    ><iconify-icon
+                      icon="solar:users-group-rounded-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon></span
+                  ><span class="hide-menu">Lead Management</span></a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a class="sidebar-link" href="/kalkulator-griya"
+                  ><span
+                    ><iconify-icon
+                      icon="solar:home-2-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon></span
+                  ><span class="hide-menu">Kalkulator Griya</span></a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a class="sidebar-link" href="/kalkulator-premi"
+                  ><span
+                    ><iconify-icon
+                      icon="solar:shield-check-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon></span
+                  ><span class="hide-menu">Kalkulator Premi</span></a
+                >
+              </li>
 
-            <div class="container-fluid">
-                <!-- Page Header -->
-                <div class="card bg-info-subtle shadow-none position-relative overflow-hidden mb-4">
-                    <div class="card-body px-4 py-3">
-                        <div class="row align-items-center">
-                            <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Simulasi Cicilan Emas Non-Payroll</h4>
-                                <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb">
-                                        <li class="breadcrumb-item">
-                                            <a class="text-muted text-decoration-none" href="/dashboard">Home</a>
-                                        </li>
-                                        <li class="breadcrumb-item" aria-current="page">Marketing</li>
-                                        <li class="breadcrumb-item active" aria-current="page">Simulasi Cicilan Emas</li>
-                                    </ol>
-                                </nav>
-                            </div>
-                            <div class="col-3">
-                                <div class="text-center mb-n5">
-                                    <iconify-icon icon="solar:calculator-minimalistic-bold-duotone" class="fs-8 text-info"></iconify-icon>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+              <li class="nav-small-cap">
+                <i class="ti ti-dots nav-small-cap-icon fs-6"></i
+                ><span class="hide-menu">MODUL OPERASIONAL</span>
+              </li>
+              <li class="sidebar-item">
+                <a class="sidebar-link" href="/calendar-event"
+                  ><span
+                    ><iconify-icon
+                      icon="solar:calendar-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon></span
+                  ><span class="hide-menu">Calendar Event</span></a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a class="sidebar-link" href="/stock-inventaris"
+                  ><span
+                    ><iconify-icon
+                      icon="solar:box-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon></span
+                  ><span class="hide-menu">Stock Inventaris</span></a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a class="sidebar-link" href="/rab"
+                  ><span
+                    ><iconify-icon
+                      icon="solar:document-text-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon></span
+                  ><span class="hide-menu">RAB</span></a
+                >
+              </li>
+              <li class="sidebar-item">
+                <a class="sidebar-link" href="/laporan"
+                  ><span
+                    ><iconify-icon
+                      icon="solar:clipboard-list-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon></span
+                  ><span class="hide-menu">Laporan</span></a
+                >
+              </li>
 
-                <!-- Spreadsheet Viewer - Non-Payroll -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <h5 class="card-title mb-1">
-                                            <iconify-icon icon="solar:table-bold-duotone" class="fs-5 me-2 text-success"></iconify-icon>
-                                            UPDATE HARGA EMAS NON PAYROLL TOKO MAS MAKMUR
-                                        </h5>
-                                        <p class="text-muted small mb-0">Spreadsheet Live Update - Klik tombol Refresh untuk melihat perubahan terbaru</p>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <button type="button" class="btn btn-outline-primary" onclick="refreshSpreadsheet('nonPayroll')">
-                                            <i class="ti ti-refresh"></i> Refresh
-                                        </button>
-                                        <a href="https://docs.google.com/spreadsheets/d/1i2FeK8xBqhAicMsM9CUJJIFIWCQyPcAl/edit?usp=drivesdk" target="_blank" class="btn btn-primary">
-                                            <i class="ti ti-external-link"></i> Buka di Tab Baru
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div class="table-responsive" style="height: 600px; overflow: auto; border: 1px solid #dee2e6; border-radius: 0.375rem;">
-                                    <iframe
-                                        id="nonPayroll"
-                                        src="https://docs.google.com/spreadsheets/d/1i2FeK8xBqhAicMsM9CUJJIFIWCQyPcAl/preview?usp=sharing"
-                                        width="100%"
-                                        height="100%"
-                                        frameborder="0"
-                                        style="border: none;">
-                                    </iframe>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Spreadsheet Viewer - Payroll -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <h5 class="card-title mb-1">
-                                            <iconify-icon icon="solar:table-bold-duotone" class="fs-5 me-2 text-primary"></iconify-icon>
-                                            UPDATE HARGA EMAS PAYROLL TOKO MAS MAKMUR
-                                        </h5>
-                                        <p class="text-muted small mb-0">Spreadsheet Live Update - Klik tombol Refresh untuk melihat perubahan terbaru</p>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <button type="button" class="btn btn-outline-primary" onclick="refreshSpreadsheet('payroll')">
-                                            <i class="ti ti-refresh"></i> Refresh
-                                        </button>
-                                        <a href="https://docs.google.com/spreadsheets/d/1L9HP1vraLBGg4Rkvsi_rJPtE8Su_Ijt2/edit?usp=drivesdk" target="_blank" class="btn btn-primary">
-                                            <i class="ti ti-external-link"></i> Buka di Tab Baru
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div class="table-responsive" style="height: 600px; overflow: auto; border: 1px solid #dee2e6; border-radius: 0.375rem;">
-                                    <iframe
-                                        id="payroll"
-                                        src="https://docs.google.com/spreadsheets/d/1L9HP1vraLBGg4Rkvsi_rJPtE8Su_Ijt2/preview?usp=sharing"
-                                        width="100%"
-                                        height="100%"
-                                        frameborder="0"
-                                        style="border: none;">
-                                    </iframe>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Footer Component -->
-            <div id="footer-container"></div>
+              <!-- Admin Section (hidden by default, shown if user is admin) -->
+              <li
+                class="nav-small-cap"
+                id="adminMenuSection"
+                style="display: none"
+              >
+                <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
+                <span class="hide-menu">ADMIN</span>
+              </li>
+              <li class="sidebar-item" id="adminMenuItem" style="display: none">
+                <a class="sidebar-link" href="/management-users">
+                  <span
+                    ><iconify-icon
+                      icon="solar:users-group-two-rounded-bold-duotone"
+                      class="fs-6"
+                    ></iconify-icon
+                  ></span>
+                  <span class="hide-menu">Management Users</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
         </div>
+      </aside>
+
+      <!-- Main wrapper -->
+      <div class="body-wrapper">
+        <header class="app-header">
+          <nav class="navbar navbar-expand-lg navbar-light">
+            <ul class="navbar-nav">
+              <li class="nav-item d-block d-xl-none">
+                <a
+                  class="nav-link sidebartoggler nav-icon-hover"
+                  id="headerCollapse"
+                  href="javascript:void(0)"
+                >
+                  <i class="ti ti-menu-2"></i>
+                </a>
+              </li>
+            </ul>
+            <div
+              class="navbar-collapse justify-content-end px-0"
+              id="navbarNav"
+            >
+              <ul
+                class="navbar-nav flex-row ms-auto align-items-center justify-content-end"
+              >
+                <li class="nav-item dropdown">
+                  <a
+                    class="nav-link nav-icon-hover"
+                    href="javascript:void(0)"
+                    id="drop2"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <img
+                      src="/public/images/profile/user-1.jpg"
+                      alt=""
+                      width="35"
+                      height="35"
+                      class="rounded-circle"
+                    />
+                  </a>
+                  <div
+                    class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up"
+                    aria-labelledby="drop2"
+                  >
+                    <div class="message-body">
+                      <a
+                        href="javascript:void(0)"
+                        class="d-flex align-items-center gap-2 dropdown-item"
+                      >
+                        <i class="ti ti-user fs-6"></i>
+                        <p class="mb-0 fs-3">My Profile</p>
+                      </a>
+                      <a
+                        href="javascript:void(0)"
+                        class="d-flex align-items-center gap-2 dropdown-item"
+                      >
+                        <i class="ti ti-mail fs-6"></i>
+                        <p class="mb-0 fs-3">My Account</p>
+                      </a>
+                      <a
+                        href="javascript:void(0)"
+                        class="d-flex align-items-center gap-2 dropdown-item"
+                      >
+                        <i class="ti ti-list-check fs-6"></i>
+                        <p class="mb-0 fs-3">My Task</p>
+                      </a>
+                      <button
+                        id="logoutButton"
+                        class="btn btn-outline-primary mx-3 mt-2 d-block w-100"
+                      >
+                        <i class="ti ti-logout"></i> Logout
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </header>
+
+        <div class="container-fluid">
+          <!-- Page Header -->
+          <div
+            class="card bg-info-subtle shadow-none position-relative overflow-hidden mb-4"
+          >
+            <div class="card-body px-4 py-3">
+              <div class="row align-items-center">
+                <div class="col-9">
+                  <h4 class="fw-semibold mb-8">
+                    Simulasi Cicilan Emas Non-Payroll
+                  </h4>
+                  <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                      <li class="breadcrumb-item">
+                        <a
+                          class="text-muted text-decoration-none"
+                          href="/dashboard"
+                          >Home</a
+                        >
+                      </li>
+                      <li class="breadcrumb-item" aria-current="page">
+                        Marketing
+                      </li>
+                      <li class="breadcrumb-item active" aria-current="page">
+                        Simulasi Cicilan Emas
+                      </li>
+                    </ol>
+                  </nav>
+                </div>
+                <div class="col-3">
+                  <div class="text-center mb-n5">
+                    <iconify-icon
+                      icon="solar:calculator-minimalistic-bold-duotone"
+                      class="fs-8 text-info"
+                    ></iconify-icon>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spreadsheet Viewer - Non-Payroll -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <div>
+                      <h5 class="card-title mb-1">
+                        <iconify-icon
+                          icon="solar:table-bold-duotone"
+                          class="fs-5 me-2 text-success"
+                        ></iconify-icon>
+                        UPDATE HARGA EMAS NON PAYROLL TOKO MAS MAKMUR
+                      </h5>
+                      <p class="text-muted small mb-0">
+                        Spreadsheet Live Update - Klik tombol Refresh untuk
+                        melihat perubahan terbaru
+                      </p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        onclick="refreshSpreadsheet('nonPayroll')"
+                      >
+                        <i class="ti ti-refresh"></i> Refresh
+                      </button>
+                      <a
+                        href="https://docs.google.com/spreadsheets/d/1i2FeK8xBqhAicMsM9CUJJIFIWCQyPcAl/edit?usp=drivesdk"
+                        target="_blank"
+                        class="btn btn-primary"
+                      >
+                        <i class="ti ti-external-link"></i> Buka di Tab Baru
+                      </a>
+                    </div>
+                  </div>
+
+                  <div
+                    class="table-responsive"
+                    style="
+                      height: 600px;
+                      overflow: auto;
+                      border: 1px solid #dee2e6;
+                      border-radius: 0.375rem;
+                    "
+                  >
+                    <iframe
+                      id="nonPayroll"
+                      src="https://docs.google.com/spreadsheets/d/1i2FeK8xBqhAicMsM9CUJJIFIWCQyPcAl/preview?usp=sharing"
+                      width="100%"
+                      height="100%"
+                      frameborder="0"
+                      style="border: none"
+                    >
+                    </iframe>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spreadsheet Viewer - Payroll -->
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-3"
+                  >
+                    <div>
+                      <h5 class="card-title mb-1">
+                        <iconify-icon
+                          icon="solar:table-bold-duotone"
+                          class="fs-5 me-2 text-primary"
+                        ></iconify-icon>
+                        UPDATE HARGA EMAS PAYROLL TOKO MAS MAKMUR
+                      </h5>
+                      <p class="text-muted small mb-0">
+                        Spreadsheet Live Update - Klik tombol Refresh untuk
+                        melihat perubahan terbaru
+                      </p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        onclick="refreshSpreadsheet('payroll')"
+                      >
+                        <i class="ti ti-refresh"></i> Refresh
+                      </button>
+                      <a
+                        href="https://docs.google.com/spreadsheets/d/1L9HP1vraLBGg4Rkvsi_rJPtE8Su_Ijt2/edit?usp=drivesdk"
+                        target="_blank"
+                        class="btn btn-primary"
+                      >
+                        <i class="ti ti-external-link"></i> Buka di Tab Baru
+                      </a>
+                    </div>
+                  </div>
+
+                  <div
+                    class="table-responsive"
+                    style="
+                      height: 600px;
+                      overflow: auto;
+                      border: 1px solid #dee2e6;
+                      border-radius: 0.375rem;
+                    "
+                  >
+                    <iframe
+                      id="payroll"
+                      src="https://docs.google.com/spreadsheets/d/1L9HP1vraLBGg4Rkvsi_rJPtE8Su_Ijt2/preview?usp=sharing"
+                      width="100%"
+                      height="100%"
+                      frameborder="0"
+                      style="border: none"
+                    >
+                    </iframe>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Footer Component -->
+        <div id="footer-container"></div>
+      </div>
     </div>
 
     <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -212,17 +431,24 @@
 
     <!-- Spreadsheet Refresh Script -->
     <script>
-        function refreshSpreadsheet(iframeId) {
-            const iframe = document.getElementById(iframeId);
-            if (iframe) {
-                // Reload iframe by re-setting its src
-                iframe.src = iframe.src;
-            }
+      function refreshSpreadsheet(iframeId) {
+        const iframe = document.getElementById(iframeId);
+        if (iframe) {
+          // Reload iframe by re-setting its src
+          iframe.src = iframe.src;
         }
+      }
+    </script>
+
+    <!-- Components Loader -->
+    <script src="/public/js/components-loader.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        loadCommonComponents();
+      });
     </script>
 
     <!-- Global Auth Handler -->
     <script src="/public/js/auth-handler.js"></script>
-</body>
+  </body>
 </html>
-
