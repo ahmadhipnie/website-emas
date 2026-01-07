@@ -93,6 +93,42 @@ async function fetchGoldPrice() {
   }
 }
 
+// Update tampilan dashboard tanpa fetch (hanya dari data yang sudah ada)
+async function updateDashboardDisplay() {
+  try {
+    // Fetch data terbaru untuk ditampilkan (tanpa trigger ke API eksternal)
+    const statsResponse = await fetch("/api/emas/stats");
+    const statsResult = await statsResponse.json();
+
+    if (!statsResult.success) {
+      throw new Error(statsResult.message);
+    }
+
+    const latest = statsResult.data.latest;
+
+    if (!latest) {
+      showNoDataMessage();
+      return;
+    }
+
+    // Cache data
+    currentData = latest;
+
+    // Update cards harga
+    updatePriceCards(latest);
+
+    // Update chart
+    await updateChart();
+
+    // Update API usage
+    updateApiUsage();
+  } catch (error) {
+    console.error("Error updating dashboard display:", error);
+    // Tampilkan pesan data belum ada
+    showNoDataMessage();
+  }
+}
+
 // Update tampilan dashboard
 async function updateDashboard() {
   try {
@@ -468,28 +504,35 @@ async function updateApiUsage() {
   }
 }
 
+// Flag untuk mencegah inisialisasi ganda
+let isDashboardInitialized = false;
+
+// Simpan referensi ke debounced function
+let debouncedFetchHandler = null;
+
 // Function to initialize dashboard
 function initializeDashboard() {
   // Check if we're on the dashboard page
-  if (document.getElementById("gold-price-chart")) {
+  const chartElement = document.getElementById("gold-price-chart");
+  if (chartElement && !isDashboardInitialized) {
     console.log('Initializing dashboard...');
-    updateDashboard();
+    isDashboardInitialized = true;
+
+    // Auto-fetch dihapus - hanya update tampilan dari data yang sudah ada
+    updateDashboardDisplay();
 
     // Setup toggle unit button
     const toggleBtn = document.getElementById("toggle-unit-btn");
     if (toggleBtn) {
-      // Remove existing listener to avoid duplicates
-      toggleBtn.removeEventListener("click", toggleUnit);
       toggleBtn.addEventListener("click", toggleUnit);
     }
 
     // Setup refresh button
     const refreshBtn = document.getElementById("refresh-gold-btn");
     if (refreshBtn) {
-      // Remove existing listener to avoid duplicates
-      refreshBtn.removeEventListener("click", debounce(fetchGoldPrice, 1500));
-      // Wrap fetchGoldPrice with a short debounce (1.5s) to prevent rapid repeated clicks
-      refreshBtn.addEventListener("click", debounce(fetchGoldPrice, 1500));
+      // Buat debounced handler hanya sekali
+      debouncedFetchHandler = debounce(fetchGoldPrice, 1500);
+      refreshBtn.addEventListener("click", debouncedFetchHandler);
     }
   }
 }
@@ -506,6 +549,12 @@ new MutationObserver(() => {
   const url = location.href;
   if (url !== lastUrl) {
     lastUrl = url;
+
+    // Reset flag ketika URL berubah (navigasi SPA)
+    if (url.includes('/dashboard')) {
+      isDashboardInitialized = false;
+    }
+
     // Check if dashboard is now visible
     if (document.getElementById("gold-price-chart")) {
       console.log('Dashboard detected after navigation, reinitializing...');
@@ -517,37 +566,8 @@ new MutationObserver(() => {
   }
 }).observe(document, { subtree: true, childList: true });
 
-// Also observe for when dashboard content is added/removed
-const dashboardObserver = new MutationObserver((_mutations) => {
-  // Check if gold-price-chart was added to DOM
-  const chartElement = document.getElementById("gold-price-chart");
-  if (chartElement && !goldChart) {
-    console.log('Dashboard chart element detected, initializing...');
-    // Clear any existing timeout to avoid duplicate initialization
-    if (window.dashboardInitTimeout) {
-      clearTimeout(window.dashboardInitTimeout);
-    }
-    // Small delay to ensure all dashboard elements are loaded
-    window.dashboardInitTimeout = setTimeout(() => {
-      initializeDashboard();
-    }, 150);
-  }
-});
-
-// Start observing when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    dashboardObserver.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-  });
-} else {
-  dashboardObserver.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-}
+// Hapus observer kedua yang redundant - sudah ditangani oleh observer pertama
+// const dashboardObserver = ... (DIHAPUS)
 
 // Export functions for global access
 window.fetchGoldPrice = fetchGoldPrice;
