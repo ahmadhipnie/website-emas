@@ -432,6 +432,11 @@ document.addEventListener("DOMContentLoaded", function () {
         // Disable tombol simpan
         document.getElementById("btnSimpan").disabled = true;
 
+        // Tampilkan spreadsheet otomatis setelah simpan
+        if (typeof showSpreadsheetAfterSave === 'function') {
+          showSpreadsheetAfterSave();
+        }
+
         // Reset form (opsional - comment jika ingin reset)
         // document.getElementById('simulasiForm').reset();
         // hasilSimulasi = null;
