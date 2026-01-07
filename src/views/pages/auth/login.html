@@ -7,7 +7,7 @@
     <link
       rel="shortcut icon"
       type="image/png"
-      href="/public/images/logos/seodashlogo.png"
+      href="/public/images/logos/Bank_Syariah_Indonesia.svg"
     />
     <link rel="stylesheet" href="/public/css/styles.min.css" />
   </head>
@@ -34,31 +34,41 @@
                     href="/"
                     class="text-nowrap logo-img text-center d-block py-3 w-100"
                   >
-                    <span class="d-flex align-items-center justify-content-center gap-2">
-                      <iconify-icon
-                        icon="fa-solid:coins"
-                        style="color: #d4af37"
-                        class="fs-3"
-                        aria-hidden="true"
-                      ></iconify-icon>
-                      <span class="brand-text fw-semibold fs-4"
-                        >Website Emas</span
-                      >
-                    </span>
+                    <img
+                      src="/public/images/logos/Bank_Syariah_Indonesia.svg"
+                      alt="Bank Syariah Indonesia"
+                      style="
+                        height: 40px;
+                        width: auto;
+                        margin: 0 auto;
+                        display: block;
+                      "
+                    />
+                    <span class="brand-text fw-semibold fs-4 ms-1 d-block mt-2"
+                      >BSIMOMS</span
+                    >
                   </a>
                   <p class="text-center">Silakan login untuk melanjutkan</p>
 
                   <!-- Alert untuk error/success message -->
-                  <div id="alertMessage" class="alert alert-dismissible fade" role="alert" style="display: none;">
+                  <div
+                    id="alertMessage"
+                    class="alert alert-dismissible fade"
+                    role="alert"
+                    style="display: none"
+                  >
                     <span id="alertText"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="alert"
+                      aria-label="Close"
+                    ></button>
                   </div>
 
                   <form id="loginForm">
                     <div class="mb-3">
-                      <label for="emailInput" class="form-label"
-                        >Email</label
-                      >
+                      <label for="emailInput" class="form-label">Email</label>
                       <input
                         type="email"
                         class="form-control"
@@ -107,12 +117,14 @@
                       id="loginButton"
                     >
                       <span id="loginButtonText">Sign In</span>
-                      <span id="loginSpinner" class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true" style="display: none;"></span>
+                      <span
+                        id="loginSpinner"
+                        class="spinner-border spinner-border-sm ms-2"
+                        role="status"
+                        aria-hidden="true"
+                        style="display: none"
+                      ></span>
                     </button>
-                    
-                    <div class="text-center">
-                      <small class="text-muted">Demo: admin@websiteemas.com / password123</small>
-                    </div>
                   </form>
                 </div>
               </div>
@@ -124,95 +136,102 @@
 
     <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
-    
+
     <script>
       // Handle login form submission
-      document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
 
-        const email = document.getElementById('emailInput').value;
-        const password = document.getElementById('passwordInput').value;
-        const loginButton = document.getElementById('loginButton');
-        const loginButtonText = document.getElementById('loginButtonText');
-        const loginSpinner = document.getElementById('loginSpinner');
+          const email = document.getElementById("emailInput").value;
+          const password = document.getElementById("passwordInput").value;
+          const loginButton = document.getElementById("loginButton");
+          const loginButtonText = document.getElementById("loginButtonText");
+          const loginSpinner = document.getElementById("loginSpinner");
 
-        // Disable button dan show loading
-        loginButton.disabled = true;
-        loginButtonText.textContent = 'Logging in...';
-        loginSpinner.style.display = 'inline-block';
+          // Disable button dan show loading
+          loginButton.disabled = true;
+          loginButtonText.textContent = "Logging in...";
+          loginSpinner.style.display = "inline-block";
 
-        try {
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-          });
+          try {
+            const response = await fetch("/api/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ email, password }),
+            });
 
-          const data = await response.json();
+            const data = await response.json();
 
-          if (data.success) {
-            // Show success message
-            showAlert('success', data.message);
+            if (data.success) {
+              // Show success message
+              showAlert("success", data.message);
 
-            // Redirect ke dashboard setelah 1 detik
-            setTimeout(() => {
-              window.location.href = data.redirect || '/dashboard';
-            }, 1000);
-          } else {
-            // Show error message
-            showAlert('danger', data.message);
+              // Redirect ke dashboard setelah 1 detik
+              setTimeout(() => {
+                window.location.href = data.redirect || "/dashboard";
+              }, 1000);
+            } else {
+              // Show error message
+              showAlert("danger", data.message);
+
+              // Enable button kembali
+              loginButton.disabled = false;
+              loginButtonText.textContent = "Sign In";
+              loginSpinner.style.display = "none";
+            }
+          } catch (error) {
+            console.error("Login error:", error);
+            showAlert(
+              "danger",
+              "Terjadi kesalahan saat login. Silakan coba lagi."
+            );
 
             // Enable button kembali
             loginButton.disabled = false;
-            loginButtonText.textContent = 'Sign In';
-            loginSpinner.style.display = 'none';
+            loginButtonText.textContent = "Sign In";
+            loginSpinner.style.display = "none";
           }
-        } catch (error) {
-          console.error('Login error:', error);
-          showAlert('danger', 'Terjadi kesalahan saat login. Silakan coba lagi.');
-
-          // Enable button kembali
-          loginButton.disabled = false;
-          loginButtonText.textContent = 'Sign In';
-          loginSpinner.style.display = 'none';
-        }
-      });
+        });
 
       // Function untuk show alert message
       function showAlert(type, message) {
-        const alertDiv = document.getElementById('alertMessage');
-        const alertText = document.getElementById('alertText');
+        const alertDiv = document.getElementById("alertMessage");
+        const alertText = document.getElementById("alertText");
 
         alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
         alertText.textContent = message;
-        alertDiv.style.display = 'block';
+        alertDiv.style.display = "block";
 
         // Auto hide setelah 5 detik
         setTimeout(() => {
-          alertDiv.style.display = 'none';
+          alertDiv.style.display = "none";
         }, 5000);
       }
 
       // Auto fill form jika ada remember me di localStorage
-      window.addEventListener('load', function() {
-        const rememberedEmail = localStorage.getItem('rememberedEmail');
+      window.addEventListener("load", function () {
+        const rememberedEmail = localStorage.getItem("rememberedEmail");
         if (rememberedEmail) {
-          document.getElementById('emailInput').value = rememberedEmail;
-          document.getElementById('rememberMe').checked = true;
+          document.getElementById("emailInput").value = rememberedEmail;
+          document.getElementById("rememberMe").checked = true;
         }
       });
 
       // Save email jika remember me checked
-      document.getElementById('rememberMe').addEventListener('change', function() {
-        const email = document.getElementById('emailInput').value;
-        if (this.checked && email) {
-          localStorage.setItem('rememberedEmail', email);
-        } else {
-          localStorage.removeItem('rememberedEmail');
-        }
-      });
+      document
+        .getElementById("rememberMe")
+        .addEventListener("change", function () {
+          const email = document.getElementById("emailInput").value;
+          if (this.checked && email) {
+            localStorage.setItem("rememberedEmail", email);
+          } else {
+            localStorage.removeItem("rememberedEmail");
+          }
+        });
     </script>
   </body>
 </html>
