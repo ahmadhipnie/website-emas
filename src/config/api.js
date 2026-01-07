@@ -157,6 +157,30 @@ router.post(
 // =============================================
 
 /**
+ * GET /api/auth/me
+ * Get current logged in user info
+ */
+router.get('/auth/me', isAuthenticated, async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      data: {
+        id_user: req.session.user.id_user,
+        nama: req.session.user.nama,
+        email: req.session.user.email,
+        role: req.session.user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil data user',
+      error: error.message
+    });
+  }
+});
+
+/**
  * GET /api/users
  * Get all users (Admin only)
  */
@@ -2075,7 +2099,7 @@ router.get("/laporan/:id", isAuthenticated, async (req, res) => {
 
 /**
  * GET /api/laporan/rab-list
- * Mendapatkan daftar RAB untuk dropdown (hanya yang disetujui/dalam proses)
+ * Mendapatkan daftar RAB untuk dropdown
  */
 // router.get('/laporan/rab-list', isAuthenticated, async (req, res) => {
 //   try {
