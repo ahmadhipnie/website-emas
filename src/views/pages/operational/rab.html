@@ -3,30 +3,229 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RAB - Website EMAS</title>
+    <title>RAB (Rencana Anggaran Biaya) - Website EMAS</title>
     <link rel="shortcut icon" type="image/png" href="/public/images/logos/seodashlogo.png" />
-    <link rel="stylesheet" href="/public/css/styles.min.css" />`n    <link rel="stylesheet" href="/public/css/spa-transitions.css" />
+    <link rel="stylesheet" href="/public/css/styles.min.css" />
+    <link rel="stylesheet" href="/public/css/spa-transitions.css" />
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
 </head>
 <body>
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
         <!-- Sidebar Start -->
-        <!-- Sidebar Container - Loaded dynamically -->
-      <div id="sidebar-container"></div>
-      <!--  Sidebar End -->
+        <div id="sidebar-container"></div>
+        <!--  Sidebar End -->
         
         <!-- Main wrapper -->
         <div class="body-wrapper">
-            <!-- Header Container - Loaded dynamically -->
-        <div id="header-container"></div>
-        <!--  Header End -->
+            <!-- Header Container -->
+            <div id="header-container"></div>
+            <!--  Header End -->
             
             <div class="container-fluid">
+                <!-- Page Title -->
+                <div class="card bg-warning-subtle shadow-none position-relative overflow-hidden mb-4">
+                    <div class="card-body px-4 py-3">
+                        <div class="row align-items-center">
+                            <div class="col-9">
+                                <h4 class="fw-semibold mb-8">RAB (Rencana Anggaran Biaya)</h4>
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item">
+                                            <a class="text-muted text-decoration-none" href="/dashboard">Home</a>
+                                        </li>
+                                        <li class="breadcrumb-item" aria-current="page">RAB</li>
+                                    </ol>
+                                </nav>
+                            </div>
+                            <div class="col-3">
+                                <div class="text-center mb-n5">
+                                    <img src="/public/images/backgrounds/rocket.png" alt="" class="img-fluid mb-n4" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RAB Table Card -->
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title fw-semibold mb-4">RAB (Rencana Anggaran Biaya)</h5>
-                        <p class="mb-0">Pengelolaan Rencana Anggaran Biaya proyek.</p>
-                        <p class="text-muted">Konten halaman ini akan dikembangkan sesuai kebutuhan bisnis.</p>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="card-title fw-semibold mb-0">Daftar RAB</h5>
+                                <p class="text-muted mb-0">Kelola Rencana Anggaran Biaya kegiatan</p>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="btnAddRAB">
+                                <iconify-icon icon="tabler:plus" class="me-1"></iconify-icon>
+                                Tambah RAB
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table id="rabTable" class="table table-striped table-bordered" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Kegiatan</th>
+                                        <th>Anggaran</th>
+                                        <th>Realisasi</th>
+                                        <th>Sisa</th>
+                                        <th>Progress</th>
+                                        <th>Status</th>
+                                        <th>Tgl Pengajuan</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be loaded via DataTables Ajax -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add/Edit RAB -->
+    <div class="modal fade" id="rabModal" tabindex="-1" aria-labelledby="rabModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rabModalLabel">Tambah RAB</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="rabForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="rabId" />
+                        
+                        <div class="mb-3">
+                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nama_kegiatan" placeholder="Masukkan nama kegiatan" required />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="anggaran" class="form-label">Anggaran (Rp) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="anggaran" min="0" step="0.01" placeholder="0" required />
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="realisasi" class="form-label">Realisasi (Rp)</label>
+                                <input type="number" class="form-control" id="realisasi" min="0" step="0.01" placeholder="0" />
+                                <small class="text-muted">Realisasi tidak boleh melebihi anggaran</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tanggal_pengajuan" class="form-label">Tanggal Pengajuan</label>
+                                <input type="date" class="form-control" id="tanggal_pengajuan" />
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status">
+                                    <option value="Diajukan">Diajukan</option>
+                                    <option value="Disetujui">Disetujui</option>
+                                    <option value="Ditolak">Ditolak</option>
+                                    <option value="Dalam Proses">Dalam Proses</option>
+                                    <option value="Selesai">Selesai</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="keterangan" class="form-label">Keterangan</label>
+                            <textarea class="form-control" id="keterangan" rows="3" placeholder="Keterangan tambahan (opsional)"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal View RAB -->
+    <div class="modal fade" id="viewRABModal" tabindex="-1" aria-labelledby="viewRABModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="viewRABModalLabel">Detail RAB</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold" style="width: 200px;">Nama Kegiatan</td>
+                                <td>:</td>
+                                <td id="viewNamaKegiatan">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Anggaran</td>
+                                <td>:</td>
+                                <td id="viewAnggaran" class="fw-bold text-primary">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Realisasi</td>
+                                <td>:</td>
+                                <td id="viewRealisasi" class="fw-bold">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Sisa Anggaran</td>
+                                <td>:</td>
+                                <td id="viewSisaAnggaran">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Progress Realisasi</td>
+                                <td>:</td>
+                                <td id="viewPersentase">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Status</td>
+                                <td>:</td>
+                                <td id="viewStatus">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Tanggal Pengajuan</td>
+                                <td>:</td>
+                                <td id="viewTanggalPengajuan">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Keterangan</td>
+                                <td>:</td>
+                                <td id="viewKeterangan">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Delete Confirmation -->
+    <div class="modal fade" id="deleteRABModal" tabindex="-1" aria-labelledby="deleteRABModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteRABModalLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="deleteRABId" />
+                    <p>Apakah Anda yakin ingin menghapus RAB ini?</p>
+                    <p class="text-muted mb-0"><small>Laporan (LPJ) yang terkait dengan RAB ini akan menjadi tidak berelasi. Data yang dihapus tidak dapat dikembalikan.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmDelete">Hapus</button>
                 </div>
             </div>
         </div>
@@ -36,9 +235,17 @@
     <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/public/libs/simplebar/dist/simplebar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
     <!-- Components Loader -->
     <script src="/public/js/components-loader.js"></script>
+    
+    <!-- RAB JS -->
+    <script src="/public/js/rab.js"></script>
+    
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         loadCommonComponents();

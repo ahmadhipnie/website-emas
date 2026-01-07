@@ -64,6 +64,50 @@ const upload = multer({
 });
 
 // =============================================
+// Multer Configuration untuk Upload PDF (Laporan)
+// =============================================
+
+// Storage configuration untuk PDF
+const pdfStorage = multer.diskStorage({
+  destination: async function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../../public/uploads/laporan');
+    // Pastikan folder exists
+    try {
+      await fs.mkdir(uploadPath, { recursive: true });
+    } catch (error) {
+      console.error('Error creating upload directory:', error);
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename: timestamp-random-originalname
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const nameWithoutExt = path.basename(file.originalname, ext);
+    cb(null, nameWithoutExt + '-' + uniqueSuffix + ext);
+  }
+});
+
+// File filter - hanya terima PDF
+const pdfFileFilter = (req, file, cb) => {
+  const allowedTypes = /pdf/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = file.mimetype === 'application/pdf';
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb(new Error('Hanya file PDF yang diperbolehkan!'));
+  }
+};
+
+const uploadPDF = multer({
+  storage: pdfStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB untuk PDF
+  fileFilter: pdfFileFilter
+});
+
+// =============================================
 // Authentication Routes
 // =============================================
 
@@ -847,6 +891,1017 @@ router.delete('/flyer/:id', isAuthenticated, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Gagal menghapus flyer',
+      error: error.message
+    });
+  }
+});
+
+// =============================================
+// Event (Calendar) CRUD Routes
+// =============================================
+
+/**
+ * GET /api/event
+ * Get semua events
+ */
+router.get('/event', isAuthenticated, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT id_event, nama_event, lokasi,
+             DATE_FORMAT(tanggal_event, '%Y-%m-%d') AS tanggal_event,
+             TIME_FORMAT(waktu_event, '%H:%i:%s') AS waktu_event,
+             penanggung_jawab, keterangan
+      FROM event
+      ORDER BY tanggal_event ASC, waktu_event ASC
+    `);
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memuat data event',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/event/:id
+ * Get event by ID
+ */
+router.get('/event/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(`
+      SELECT id_event, nama_event, lokasi,
+             DATE_FORMAT(tanggal_event, '%Y-%m-%d') AS tanggal_event,
+             TIME_FORMAT(waktu_event, '%H:%i:%s') AS waktu_event,
+             penanggung_jawab, keterangan
+      FROM event WHERE id_event = ?`, [id]);
+    
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event tidak ditemukan'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memuat data event',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/event
+ * Create new event
+ */
+router.post('/event', isAuthenticated, async (req, res) => {
+  try {
+    const { nama_event, lokasi, tanggal_event, waktu_event, penanggung_jawab, keterangan } = req.body;
+    
+    // Validation
+    if (!nama_event || !lokasi || !tanggal_event || !waktu_event || !penanggung_jawab) {
+      return res.status(400).json({
+        success: false,
+        message: 'Semua field wajib diisi kecuali keterangan'
+      });
+    }
+    
+    const result = await query(
+      'INSERT INTO event (nama_event, lokasi, tanggal_event, waktu_event, penanggung_jawab, keterangan) VALUES (?, ?, ?, ?, ?, ?)',
+      [nama_event, lokasi, tanggal_event, waktu_event, penanggung_jawab, keterangan || null]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Event berhasil ditambahkan',
+      data: {
+        id_event: result.insertId,
+        nama_event,
+        lokasi,
+        tanggal_event,
+        waktu_event,
+        penanggung_jawab,
+        keterangan
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan event',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/event/:id
+ * Update event
+ */
+router.put('/event/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nama_event, lokasi, tanggal_event, waktu_event, penanggung_jawab, keterangan } = req.body;
+    
+    // Cek apakah event exists
+    const existing = await query('SELECT * FROM event WHERE id_event = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event tidak ditemukan'
+      });
+    }
+    
+    // Validation
+    if (!nama_event || !lokasi || !tanggal_event || !waktu_event || !penanggung_jawab) {
+      return res.status(400).json({
+        success: false,
+        message: 'Semua field wajib diisi kecuali keterangan'
+      });
+    }
+    
+    await query(
+      'UPDATE event SET nama_event = ?, lokasi = ?, tanggal_event = ?, waktu_event = ?, penanggung_jawab = ?, keterangan = ? WHERE id_event = ?',
+      [nama_event, lokasi, tanggal_event, waktu_event, penanggung_jawab, keterangan || null, id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Event berhasil diperbarui',
+      data: {
+        id_event: parseInt(id),
+        nama_event,
+        lokasi,
+        tanggal_event,
+        waktu_event,
+        penanggung_jawab,
+        keterangan
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memperbarui event',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/event/:id
+ * Delete event
+ */
+router.delete('/event/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Cek apakah event exists
+    const existing = await query('SELECT * FROM event WHERE id_event = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event tidak ditemukan'
+      });
+    }
+    
+    // Hapus dari database
+    await query('DELETE FROM event WHERE id_event = ?', [id]);
+    
+    res.json({
+      success: true,
+      message: 'Event berhasil dihapus'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menghapus event',
+      error: error.message
+    });
+  }
+});
+
+// =============================================
+// INVENTARIS CRUD ENDPOINTS
+// =============================================
+
+/**
+ * GET /api/inventaris
+ * Mendapatkan semua data inventaris
+ */
+router.get('/inventaris', isAuthenticated, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT id_inventaris, nama_barang, jumlah, kondisi,
+             DATE_FORMAT(tanggal_update, '%Y-%m-%d') AS tanggal_update,
+             keterangan
+      FROM inventaris
+      ORDER BY tanggal_update DESC, nama_barang ASC
+    `);
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error fetching inventaris:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil data inventaris',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/inventaris/:id
+ * Mendapatkan detail inventaris berdasarkan ID
+ */
+router.get('/inventaris/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(`
+      SELECT id_inventaris, nama_barang, jumlah, kondisi,
+             DATE_FORMAT(tanggal_update, '%Y-%m-%d') AS tanggal_update,
+             keterangan
+      FROM inventaris
+      WHERE id_inventaris = ?
+    `, [id]);
+    
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inventaris tidak ditemukan'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    console.error('Error fetching inventaris detail:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil detail inventaris',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/inventaris
+ * Menambahkan inventaris baru
+ */
+router.post('/inventaris', isAuthenticated, async (req, res) => {
+  try {
+    const { nama_barang, jumlah, kondisi, tanggal_update, keterangan } = req.body;
+    
+    // Validasi input
+    if (!nama_barang || jumlah === undefined || !kondisi) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama barang, jumlah, dan kondisi harus diisi'
+      });
+    }
+    
+    // Validasi jumlah harus angka
+    if (isNaN(jumlah) || parseInt(jumlah) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Jumlah harus berupa angka positif'
+      });
+    }
+    
+    // Insert ke database
+    const result = await query(
+      `INSERT INTO inventaris (nama_barang, jumlah, kondisi, tanggal_update, keterangan)
+       VALUES (?, ?, ?, ?, ?)`,
+      [nama_barang, parseInt(jumlah), kondisi, tanggal_update || null, keterangan || null]
+    );
+    
+    res.status(201).json({
+      success: true,
+      message: 'Inventaris berhasil ditambahkan',
+      data: {
+        id_inventaris: result.insertId,
+        nama_barang,
+        jumlah: parseInt(jumlah),
+        kondisi,
+        tanggal_update,
+        keterangan
+      }
+    });
+  } catch (error) {
+    console.error('Error creating inventaris:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan inventaris',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/inventaris/:id
+ * Update inventaris
+ */
+router.put('/inventaris/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nama_barang, jumlah, kondisi, tanggal_update, keterangan } = req.body;
+    
+    // Validasi input
+    if (!nama_barang || jumlah === undefined || !kondisi) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama barang, jumlah, dan kondisi harus diisi'
+      });
+    }
+    
+    // Validasi jumlah harus angka
+    if (isNaN(jumlah) || parseInt(jumlah) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Jumlah harus berupa angka positif'
+      });
+    }
+    
+    // Cek apakah inventaris exists
+    const existing = await query('SELECT * FROM inventaris WHERE id_inventaris = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inventaris tidak ditemukan'
+      });
+    }
+    
+    // Update database
+    await query(
+      `UPDATE inventaris 
+       SET nama_barang = ?, jumlah = ?, kondisi = ?, tanggal_update = ?, keterangan = ?
+       WHERE id_inventaris = ?`,
+      [nama_barang, parseInt(jumlah), kondisi, tanggal_update || null, keterangan || null, id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Inventaris berhasil diperbarui',
+      data: {
+        id_inventaris: parseInt(id),
+        nama_barang,
+        jumlah: parseInt(jumlah),
+        kondisi,
+        tanggal_update,
+        keterangan
+      }
+    });
+  } catch (error) {
+    console.error('Error updating inventaris:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memperbarui inventaris',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/inventaris/:id
+ * Delete inventaris
+ */
+router.delete('/inventaris/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Cek apakah inventaris exists
+    const existing = await query('SELECT * FROM inventaris WHERE id_inventaris = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inventaris tidak ditemukan'
+      });
+    }
+    
+    // Hapus dari database
+    await query('DELETE FROM inventaris WHERE id_inventaris = ?', [id]);
+    
+    res.json({
+      success: true,
+      message: 'Inventaris berhasil dihapus'
+    });
+  } catch (error) {
+    console.error('Error deleting inventaris:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menghapus inventaris',
+      error: error.message
+    });
+  }
+});
+
+// =============================================
+// RAB (RENCANA ANGGARAN BIAYA) CRUD ENDPOINTS
+// =============================================
+
+/**
+ * GET /api/rab
+ * Mendapatkan semua data RAB
+ */
+router.get('/rab', isAuthenticated, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT id_rab, nama_kegiatan, anggaran, realisasi,
+             DATE_FORMAT(tanggal_pengajuan, '%Y-%m-%d') AS tanggal_pengajuan,
+             status, keterangan,
+             (anggaran - realisasi) AS sisa_anggaran,
+             CASE 
+               WHEN anggaran > 0 THEN ROUND((realisasi / anggaran * 100), 2)
+               ELSE 0 
+             END AS persentase_realisasi
+      FROM rab
+      ORDER BY tanggal_pengajuan DESC, id_rab DESC
+    `);
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error fetching rab:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil data RAB',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/rab/:id
+ * Mendapatkan detail RAB berdasarkan ID
+ */
+router.get('/rab/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(`
+      SELECT id_rab, nama_kegiatan, anggaran, realisasi,
+             DATE_FORMAT(tanggal_pengajuan, '%Y-%m-%d') AS tanggal_pengajuan,
+             status, keterangan
+      FROM rab
+      WHERE id_rab = ?
+    `, [id]);
+    
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'RAB tidak ditemukan'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    console.error('Error fetching rab detail:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil detail RAB',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/rab
+ * Menambahkan RAB baru
+ */
+router.post('/rab', isAuthenticated, async (req, res) => {
+  try {
+    const { nama_kegiatan, anggaran, realisasi, tanggal_pengajuan, status, keterangan } = req.body;
+    
+    // Validasi input
+    if (!nama_kegiatan || anggaran === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama kegiatan dan anggaran harus diisi'
+      });
+    }
+    
+    // Validasi anggaran harus angka positif
+    if (isNaN(anggaran) || parseFloat(anggaran) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Anggaran harus berupa angka positif'
+      });
+    }
+    
+    // Validasi realisasi tidak boleh lebih dari anggaran
+    const realisasiValue = parseFloat(realisasi) || 0;
+    if (realisasiValue > parseFloat(anggaran)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Realisasi tidak boleh melebihi anggaran'
+      });
+    }
+    
+    // Insert ke database
+    const result = await query(
+      `INSERT INTO rab (nama_kegiatan, anggaran, realisasi, tanggal_pengajuan, status, keterangan)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        nama_kegiatan,
+        parseFloat(anggaran),
+        realisasiValue,
+        tanggal_pengajuan || null,
+        status || 'Diajukan',
+        keterangan || null
+      ]
+    );
+    
+    res.status(201).json({
+      success: true,
+      message: 'RAB berhasil ditambahkan',
+      data: {
+        id_rab: result.insertId,
+        nama_kegiatan,
+        anggaran: parseFloat(anggaran),
+        realisasi: realisasiValue,
+        tanggal_pengajuan,
+        status: status || 'Diajukan',
+        keterangan
+      }
+    });
+  } catch (error) {
+    console.error('Error creating rab:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan RAB',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/rab/:id
+ * Update RAB
+ */
+router.put('/rab/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nama_kegiatan, anggaran, realisasi, tanggal_pengajuan, status, keterangan } = req.body;
+    
+    // Validasi input
+    if (!nama_kegiatan || anggaran === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama kegiatan dan anggaran harus diisi'
+      });
+    }
+    
+    // Validasi anggaran harus angka positif
+    if (isNaN(anggaran) || parseFloat(anggaran) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Anggaran harus berupa angka positif'
+      });
+    }
+    
+    // Validasi realisasi tidak boleh lebih dari anggaran
+    const realisasiValue = parseFloat(realisasi) || 0;
+    if (realisasiValue > parseFloat(anggaran)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Realisasi tidak boleh melebihi anggaran'
+      });
+    }
+    
+    // Cek apakah rab exists
+    const existing = await query('SELECT * FROM rab WHERE id_rab = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'RAB tidak ditemukan'
+      });
+    }
+    
+    // Update database
+    await query(
+      `UPDATE rab 
+       SET nama_kegiatan = ?, anggaran = ?, realisasi = ?, tanggal_pengajuan = ?, status = ?, keterangan = ?
+       WHERE id_rab = ?`,
+      [
+        nama_kegiatan,
+        parseFloat(anggaran),
+        realisasiValue,
+        tanggal_pengajuan || null,
+        status || 'Diajukan',
+        keterangan || null,
+        id
+      ]
+    );
+    
+    res.json({
+      success: true,
+      message: 'RAB berhasil diperbarui',
+      data: {
+        id_rab: parseInt(id),
+        nama_kegiatan,
+        anggaran: parseFloat(anggaran),
+        realisasi: realisasiValue,
+        tanggal_pengajuan,
+        status,
+        keterangan
+      }
+    });
+  } catch (error) {
+    console.error('Error updating rab:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memperbarui RAB',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/rab/:id
+ * Delete RAB (akan set NULL di LPJ yang terkait)
+ */
+router.delete('/rab/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Cek apakah rab exists
+    const existing = await query('SELECT * FROM rab WHERE id_rab = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'RAB tidak ditemukan'
+      });
+    }
+    
+    // Cek apakah ada LPJ terkait
+    const relatedLPJ = await query('SELECT COUNT(*) as count FROM lpj WHERE id_rab = ?', [id]);
+    const lpjCount = relatedLPJ[0].count;
+    
+    // Hapus dari database (foreign key akan set NULL otomatis di LPJ)
+    await query('DELETE FROM rab WHERE id_rab = ?', [id]);
+    
+    res.json({
+      success: true,
+      message: `RAB berhasil dihapus${lpjCount > 0 ? `. ${lpjCount} LPJ terkait akan menjadi tidak berelasi.` : ''}`
+    });
+  } catch (error) {
+    console.error('Error deleting rab:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menghapus RAB',
+      error: error.message
+    });
+  }
+});
+
+// =============================================
+// LPJ (LAPORAN PERTANGGUNGJAWABAN) CRUD ENDPOINTS
+// =============================================
+
+/**
+ * GET /api/laporan
+ * Mendapatkan semua data LPJ dengan join ke RAB
+ */
+router.get('/laporan', isAuthenticated, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT 
+        l.id_lpj,
+        l.id_rab,
+        l.nama_kegiatan,
+        l.total_pengeluaran,
+        DATE_FORMAT(l.tanggal_lpj, '%Y-%m-%d') AS tanggal_lpj,
+        l.bukti_dokumen,
+        l.keterangan,
+        r.anggaran AS rab_anggaran,
+        r.status AS rab_status,
+        CASE 
+          WHEN r.anggaran > 0 THEN ROUND((l.total_pengeluaran / r.anggaran * 100), 2)
+          ELSE 0 
+        END AS persentase_terhadap_rab
+      FROM lpj l
+      LEFT JOIN rab r ON l.id_rab = r.id_rab
+      ORDER BY l.tanggal_lpj DESC, l.id_lpj DESC
+    `);
+    
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error fetching laporan:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil data Laporan',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/laporan/:id
+ * Mendapatkan detail LPJ berdasarkan ID
+ */
+router.get('/laporan/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(`
+      SELECT 
+        l.id_lpj,
+        l.id_rab,
+        l.nama_kegiatan,
+        l.total_pengeluaran,
+        DATE_FORMAT(l.tanggal_lpj, '%Y-%m-%d') AS tanggal_lpj,
+        l.bukti_dokumen,
+        l.keterangan,
+        r.nama_kegiatan AS rab_nama_kegiatan,
+        r.anggaran AS rab_anggaran,
+        r.status AS rab_status
+      FROM lpj l
+      LEFT JOIN rab r ON l.id_rab = r.id_rab
+      WHERE l.id_lpj = ?
+    `, [id]);
+    
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Laporan tidak ditemukan'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    console.error('Error fetching laporan detail:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil detail Laporan',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/laporan/rab-list
+ * Mendapatkan daftar RAB untuk dropdown (hanya yang disetujui/dalam proses)
+ */
+// router.get('/laporan/rab-list', isAuthenticated, async (req, res) => {
+//   try {
+//     const result = await query(`
+//       SELECT id_rab, nama_kegiatan, anggaran, status
+//       FROM rab
+//       WHERE status IN ('Disetujui', 'Dalam Proses', 'Selesai')
+//       ORDER BY nama_kegiatan ASC
+//     `);
+    
+//     res.json({
+//       success: true,
+//       data: result
+//     });
+//   } catch (error) {
+//     console.error('Error fetching rab list:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Gagal mengambil daftar RAB',
+//       error: error.message
+//     });
+//   }
+// });
+
+/**
+ * POST /api/laporan
+ * Menambahkan LPJ baru dengan upload PDF
+ */
+router.post('/laporan', isAuthenticated, uploadPDF.single('bukti_dokumen'), async (req, res) => {
+  try {
+    const { id_rab, nama_kegiatan, total_pengeluaran, tanggal_lpj, keterangan } = req.body;
+    
+    // Validasi input
+    if (!nama_kegiatan || total_pengeluaran === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama kegiatan dan total pengeluaran harus diisi'
+      });
+    }
+    
+    // Validasi total pengeluaran harus angka positif
+    if (isNaN(total_pengeluaran) || parseFloat(total_pengeluaran) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total pengeluaran harus berupa angka positif'
+      });
+    }
+    
+    // Jika ada id_rab, validasi RAB exists
+    if (id_rab) {
+      const rabExists = await query('SELECT * FROM rab WHERE id_rab = ?', [id_rab]);
+      if (rabExists.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'RAB tidak ditemukan'
+        });
+      }
+    }
+    
+    // Get filename dari uploaded file
+    const bukti_dokumen = req.file ? req.file.filename : null;
+    
+    // Insert ke database
+    const result = await query(
+      `INSERT INTO lpj (id_rab, nama_kegiatan, total_pengeluaran, tanggal_lpj, bukti_dokumen, keterangan)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        id_rab || null,
+        nama_kegiatan,
+        parseFloat(total_pengeluaran),
+        tanggal_lpj || null,
+        bukti_dokumen,
+        keterangan || null
+      ]
+    );
+    
+    res.status(201).json({
+      success: true,
+      message: 'Laporan berhasil ditambahkan',
+      data: {
+        id_lpj: result.insertId,
+        id_rab,
+        nama_kegiatan,
+        total_pengeluaran: parseFloat(total_pengeluaran),
+        tanggal_lpj,
+        bukti_dokumen,
+        keterangan
+      }
+    });
+  } catch (error) {
+    console.error('Error creating laporan:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan Laporan',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/laporan/:id
+ * Update LPJ dengan upload PDF baru (opsional)
+ */
+router.put('/laporan/:id', isAuthenticated, uploadPDF.single('bukti_dokumen'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { id_rab, nama_kegiatan, total_pengeluaran, tanggal_lpj, keterangan } = req.body;
+    
+    // Validasi input
+    if (!nama_kegiatan || total_pengeluaran === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama kegiatan dan total pengeluaran harus diisi'
+      });
+    }
+    
+    // Validasi total pengeluaran harus angka positif
+    if (isNaN(total_pengeluaran) || parseFloat(total_pengeluaran) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total pengeluaran harus berupa angka positif'
+      });
+    }
+    
+    // Cek apakah lpj exists
+    const existing = await query('SELECT * FROM lpj WHERE id_lpj = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Laporan tidak ditemukan'
+      });
+    }
+    
+    // Jika ada id_rab, validasi RAB exists
+    if (id_rab) {
+      const rabExists = await query('SELECT * FROM rab WHERE id_rab = ?', [id_rab]);
+      if (rabExists.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'RAB tidak ditemukan'
+        });
+      }
+    }
+    
+    // Get filename dari uploaded file (jika ada file baru)
+    let bukti_dokumen = existing[0].bukti_dokumen; // Keep old file
+    if (req.file) {
+      bukti_dokumen = req.file.filename; // Use new file
+      
+      // Hapus file lama jika ada
+      if (existing[0].bukti_dokumen) {
+        const oldFilePath = path.join(__dirname, '../../public/uploads/laporan', existing[0].bukti_dokumen);
+        try {
+          await fs.unlink(oldFilePath);
+        } catch (error) {
+          console.error('Error deleting old PDF:', error);
+        }
+      }
+    }
+    
+    // Update database
+    await query(
+      `UPDATE lpj 
+       SET id_rab = ?, nama_kegiatan = ?, total_pengeluaran = ?, tanggal_lpj = ?, bukti_dokumen = ?, keterangan = ?
+       WHERE id_lpj = ?`,
+      [
+        id_rab || null,
+        nama_kegiatan,
+        parseFloat(total_pengeluaran),
+        tanggal_lpj || null,
+        bukti_dokumen,
+        keterangan || null,
+        id
+      ]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Laporan berhasil diperbarui',
+      data: {
+        id_lpj: parseInt(id),
+        id_rab,
+        nama_kegiatan,
+        total_pengeluaran: parseFloat(total_pengeluaran),
+        tanggal_lpj,
+        bukti_dokumen,
+        keterangan
+      }
+    });
+  } catch (error) {
+    console.error('Error updating laporan:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memperbarui Laporan',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/laporan/:id
+ * Delete LPJ dengan hapus file PDF juga
+ */
+router.delete('/laporan/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Cek apakah lpj exists
+    const existing = await query('SELECT * FROM lpj WHERE id_lpj = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Laporan tidak ditemukan'
+      });
+    }
+    
+    // Hapus file PDF jika ada
+    if (existing[0].bukti_dokumen) {
+      const filePath = path.join(__dirname, '../../public/uploads/laporan', existing[0].bukti_dokumen);
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        console.error('Error deleting PDF file:', error);
+      }
+    }
+    
+    // Hapus dari database
+    await query('DELETE FROM lpj WHERE id_lpj = ?', [id]);
+    
+    res.json({
+      success: true,
+      message: 'Laporan berhasil dihapus'
+    });
+  } catch (error) {
+    console.error('Error deleting laporan:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menghapus Laporan',
       error: error.message
     });
   }
