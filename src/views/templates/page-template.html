@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{PAGE_TITLE}} - Website EMAS</title>
+    <link rel="shortcut icon" type="image/png" href="/public/images/logos/seodashlogo.png" />
+    <link rel="stylesheet" href="/public/css/styles.min.css" />
+    <!-- Additional CSS -->
+    {{ADDITIONAL_CSS}}
+  </head>
+
+  <body>
+    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
+      
+      <!-- Sidebar Container -->
+      <div id="sidebar-container"></div>
+
+      <!-- Main wrapper -->
+      <div class="body-wrapper">
+        
+        <!-- Header Container -->
+        <div id="header-container"></div>
+
+        <!-- Page Content -->
+        <div class="container-fluid">
+          
+          <!-- Page Header -->
+          <div class="card bg-info-subtle shadow-none position-relative overflow-hidden mb-4">
+            <div class="card-body px-4 py-3">
+              <div class="row align-items-center">
+                <div class="col-9">
+                  <h4 class="fw-semibold mb-8">{{PAGE_TITLE}}</h4>
+                  <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                      <li class="breadcrumb-item">
+                        <a class="text-muted text-decoration-none" href="/dashboard">Home</a>
+                      </li>
+                      {{BREADCRUMB}}
+                    </ol>
+                  </nav>
+                </div>
+                <div class="col-3">
+                  <div class="text-center mb-n5">
+                    <iconify-icon icon="{{PAGE_ICON}}" class="fs-8 text-info"></iconify-icon>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Content -->
+          {{MAIN_CONTENT}}
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="/public/libs/jquery/dist/jquery.min.js"></script>
+    <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/public/libs/simplebar/dist/simplebar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    
+    <!-- Component Loader -->
+    <script src="/public/js/components-loader.js"></script>
+    
+    <!-- Additional Scripts -->
+    {{ADDITIONAL_SCRIPTS}}
+
+    <!-- Auth Handler (Global) -->
+    <script src="/public/js/auth-handler.js"></script>
+
+    <!-- Initialize Components -->
+    <script>
+      // Load sidebar and header components
+      document.addEventListener('DOMContentLoaded', async function() {
+        await loadCommonComponents('{{ACTIVE_PAGE}}');
+      });
+    </script>
+  </body>
+</html>

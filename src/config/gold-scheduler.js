@@ -56,12 +56,42 @@ async function checkApiUsage() {
   }
 }
 
+// Flag untuk cek apakah kolom source sudah ada
+let hasSourceColumn = null;
+
+/**
+ * Cek apakah tabel emas memiliki kolom 'source'
+ */
+async function checkSourceColumn() {
+  if (hasSourceColumn !== null) return hasSourceColumn;
+  
+  try {
+    const columns = await query('DESCRIBE emas');
+    hasSourceColumn = columns.some(col => col.Field === 'source');
+    console.log(`Column 'source' exists: ${hasSourceColumn}`);
+    return hasSourceColumn;
+  } catch (error) {
+    console.error('Error checking source column:', error.message);
+    hasSourceColumn = false;
+    return false;
+  }
+}
+
 /**
  * Cek limit manual refresh dari database
  * Menghitung jumlah manual refresh di bulan ini
  */
 async function checkManualRefreshLimit() {
   try {
+    // Cek apakah kolom source ada
+    const sourceExists = await checkSourceColumn();
+    
+    if (!sourceExists) {
+      // Jika kolom source tidak ada, skip limit check
+      console.log('Column source not found, skipping manual limit check');
+      return { count: 0, limit: MAX_MANUAL_REFRESH_PER_MONTH, remaining: MAX_MANUAL_REFRESH_PER_MONTH, exceeded: false };
+    }
+    
     // Hitung manual refresh di bulan ini
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -159,25 +189,50 @@ async function fetchGoldPrice(source = 'scheduler') {
       return { success: true, message: 'Data already exists', data: data };
     }
 
-    // Simpan ke database dengan flag source
-    await query(
-      `INSERT INTO emas (timestamp, currency, metal, unit, price, ask, bid, high, low, change_value, change_percent, source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        new Date(data.timestamp),
-        data.currency,
-        data.metal,
-        data.unit,
-        data.rate.price,
-        data.rate.ask,
-        data.rate.bid,
-        data.rate.high,
-        data.rate.low,
-        data.rate.change,
-        data.rate.change_percent,
-        source
-      ]
-    );
+    // Cek apakah kolom source ada
+    const sourceExists = await checkSourceColumn();
+
+    // Simpan ke database
+    if (sourceExists) {
+      // Dengan kolom source
+      await query(
+        `INSERT INTO emas (timestamp, currency, metal, unit, price, ask, bid, high, low, change_value, change_percent, source)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          new Date(data.timestamp),
+          data.currency,
+          data.metal,
+          data.unit,
+          data.rate.price,
+          data.rate.ask,
+          data.rate.bid,
+          data.rate.high,
+          data.rate.low,
+          data.rate.change,
+          data.rate.change_percent,
+          source
+        ]
+      );
+    } else {
+      // Tanpa kolom source (untuk backward compatibility)
+      await query(
+        `INSERT INTO emas (timestamp, currency, metal, unit, price, ask, bid, high, low, change_value, change_percent)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          new Date(data.timestamp),
+          data.currency,
+          data.metal,
+          data.unit,
+          data.rate.price,
+          data.rate.ask,
+          data.rate.bid,
+          data.rate.high,
+          data.rate.low,
+          data.rate.change,
+          data.rate.change_percent
+        ]
+      );
+    }
 
     console.log(`✓ Gold price saved: ${formatPrice(data.rate.price)}/toz (${data.timestamp}) [${source}]`);
 

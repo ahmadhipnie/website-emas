@@ -5,12 +5,63 @@
 
 import express from 'express';
 import bcrypt from 'bcrypt';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
 import { query } from '../config/database.js';
 import { manualFetch, getManualRefreshStatus } from '../config/gold-scheduler.js';
 import AuthController from '../controllers/AuthController.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const router = express.Router();
+
+// =============================================
+// Multer Configuration untuk Upload Gambar
+// =============================================
+
+// Storage configuration
+const storage = multer.diskStorage({
+  destination: async function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../../public/uploads/flyers');
+    // Pastikan folder exists
+    try {
+      await fs.mkdir(uploadPath, { recursive: true });
+    } catch (error) {
+      console.error('Error creating upload directory:', error);
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename: timestamp-random-originalname
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const nameWithoutExt = path.basename(file.originalname, ext);
+    cb(null, nameWithoutExt + '-' + uniqueSuffix + ext);
+  }
+});
+
+// File filter - hanya terima gambar
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|gif/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb(new Error('Hanya file gambar (JPEG, PNG, GIF) yang diperbolehkan!'));
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: fileFilter
+});
 
 // =============================================
 // Authentication Routes
@@ -811,6 +862,215 @@ router.get('/emas/usage', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get API usage',
+      error: error.message
+    });
+  }
+});
+
+// =============================================
+// Flyers CRUD Routes
+// =============================================
+
+/**
+ * GET /api/flyers
+ * Get semua flyers
+ */
+router.get('/flyers', isAuthenticated, async (req, res) => {
+  try {
+    const result = await query('SELECT * FROM flyers ORDER BY created_at DESC');
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memuat data flyers',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/flyers/:id
+ * Get flyer by ID
+ */
+router.get('/flyers/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query('SELECT * FROM flyers WHERE id_flyer = ?', [id]);
+    
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Flyer tidak ditemukan'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memuat data flyer',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/flyers
+ * Create new flyer with image upload
+ */
+router.post('/flyers', isAuthenticated, upload.single('gambar'), async (req, res) => {
+  try {
+    const { nama, keterangan } = req.body;
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Gambar flyer harus diupload'
+      });
+    }
+    
+    if (!nama) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama flyer harus diisi'
+      });
+    }
+    
+    // Path gambar yang disimpan ke database
+    const gambarPath = `/public/uploads/flyers/${req.file.filename}`;
+    
+    const result = await query(
+      'INSERT INTO flyers (gambar, nama, keterangan) VALUES (?, ?, ?)',
+      [gambarPath, nama, keterangan || null]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Flyer berhasil ditambahkan',
+      data: {
+        id_flyer: result.insertId,
+        gambar: gambarPath,
+        nama,
+        keterangan
+      }
+    });
+  } catch (error) {
+    // Hapus file jika terjadi error
+    if (req.file) {
+      try {
+        await fs.unlink(req.file.path);
+      } catch (unlinkError) {
+        console.error('Error deleting file:', unlinkError);
+      }
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan flyer',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/flyers/:id
+ * Update flyer (optional image upload)
+ */
+router.put('/flyers/:id', isAuthenticated, upload.single('gambar'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nama, keterangan } = req.body;
+    
+    // Cek apakah flyer exists
+    const existing = await query('SELECT * FROM flyers WHERE id_flyer = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Flyer tidak ditemukan'
+      });
+    }
+    
+    let gambarPath = existing[0].gambar;
+    
+    // Jika ada file baru, update gambar
+    if (req.file) {
+      gambarPath = `/public/uploads/flyers/${req.file.filename}`;
+      
+      // Hapus gambar lama
+      const oldPath = path.join(__dirname, '../..', existing[0].gambar);
+      try {
+        await fs.unlink(oldPath);
+      } catch (unlinkError) {
+        console.error('Error deleting old image:', unlinkError);
+      }
+    }
+    
+    await query(
+      'UPDATE flyers SET gambar = ?, nama = ?, keterangan = ? WHERE id_flyer = ?',
+      [gambarPath, nama || existing[0].nama, keterangan || existing[0].keterangan, id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Flyer berhasil diperbarui',
+      data: {
+        id_flyer: parseInt(id),
+        gambar: gambarPath,
+        nama: nama || existing[0].nama,
+        keterangan: keterangan || existing[0].keterangan
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memperbarui flyer',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/flyers/:id
+ * Delete flyer and its image
+ */
+router.delete('/flyers/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get flyer data untuk hapus file
+    const existing = await query('SELECT * FROM flyers WHERE id_flyer = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Flyer tidak ditemukan'
+      });
+    }
+    
+    // Hapus dari database
+    await query('DELETE FROM flyers WHERE id_flyer = ?', [id]);
+    
+    // Hapus file gambar
+    const imagePath = path.join(__dirname, '../..', existing[0].gambar);
+    try {
+      await fs.unlink(imagePath);
+    } catch (unlinkError) {
+      console.error('Error deleting image file:', unlinkError);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Flyer berhasil dihapus'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal menghapus flyer',
       error: error.message
     });
   }

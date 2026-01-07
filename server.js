@@ -67,6 +67,7 @@ const routes = {
   "/stock-inventaris": "operational/stock-inventaris.html",
   "/rab": "operational/rab.html",
   "/laporan": "operational/laporan.html",
+  "/flyer": "operational/flyer.html",
 
   // Admin Module
   "/management-users": "admin/management-users.html",

@@ -1,0 +1,132 @@
+<!-- Sidebar Component -->
+<aside class="left-sidebar">
+  <div>
+    <div class="brand-logo d-flex align-items-center justify-content-between">
+      <a href="/dashboard" class="text-nowrap logo-img d-flex align-items-center gap-2" aria-label="Website Emas">
+        <span class="d-flex align-items-center gap-2">
+          <iconify-icon icon="fa-solid:coins" style="color:#d4af37" class="fs-4" aria-hidden="true"></iconify-icon>
+          <span class="brand-text fw-semibold fs-4 ms-1">Website Emas</span>
+        </span>
+      </a>
+      <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
+        <i class="ti ti-x fs-8"></i>
+      </div>
+    </div>
+    <!-- Sidebar navigation-->
+    <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
+      <ul id="sidebarnav">
+        <!-- MASTER HOME -->
+        <li class="nav-small-cap">
+          <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
+          <span class="hide-menu">MASTER HOME</span>
+        </li>
+        <li class="sidebar-item" data-page="dashboard">
+          <a class="sidebar-link" href="/dashboard" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:home-smile-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Dashboard</span>
+          </a>
+        </li>
+
+        <!-- MASTER MODUL MARKETING -->
+        <li class="nav-small-cap">
+          <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
+          <span class="hide-menu">MODUL MARKETING</span>
+        </li>
+        <li class="sidebar-item" data-page="simulasi-cicilan">
+          <a class="sidebar-link" href="/simulasi-cicilan" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:calculator-minimalistic-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Simulasi Cicilan Emas</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="lead-management">
+          <a class="sidebar-link" href="/lead-management" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:users-group-rounded-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Lead Management</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="kalkulator-griya">
+          <a class="sidebar-link" href="/kalkulator-griya" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:home-2-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Kalkulator Griya</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="kalkulator-premi">
+          <a class="sidebar-link" href="/kalkulator-premi" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:shield-check-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Kalkulator Premi</span>
+          </a>
+        </li>
+
+        <!-- MASTER MODUL OPERASIONAL -->
+        <li class="nav-small-cap">
+          <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
+          <span class="hide-menu">MODUL OPERASIONAL</span>
+        </li>
+        <li class="sidebar-item" data-page="calendar-event">
+          <a class="sidebar-link" href="/calendar-event" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:calendar-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Calendar Event</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="stock-inventaris">
+          <a class="sidebar-link" href="/stock-inventaris" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:box-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Stock Inventaris</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="rab">
+          <a class="sidebar-link" href="/rab" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:document-text-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">RAB</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="laporan">
+          <a class="sidebar-link" href="/laporan" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:clipboard-list-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Laporan</span>
+          </a>
+        </li>
+        <li class="sidebar-item" data-page="flyer">
+          <a class="sidebar-link" href="/flyer" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:gallery-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Flyer</span>
+          </a>
+        </li>
+
+        <!-- MASTER ADMIN (Only visible for admin) -->
+        <li class="nav-small-cap" id="adminMenuSection" style="display: none;">
+          <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
+          <span class="hide-menu">ADMIN</span>
+        </li>
+        <li class="sidebar-item" id="adminMenuItem" data-page="management-users" style="display: none;">
+          <a class="sidebar-link" href="/management-users" aria-expanded="false">
+            <span>
+              <iconify-icon icon="solar:users-group-two-rounded-bold-duotone" class="fs-6"></iconify-icon>
+            </span>
+            <span class="hide-menu">Management Users</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</aside>
