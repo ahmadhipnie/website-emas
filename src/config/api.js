@@ -692,6 +692,26 @@ router.get('/emas/usage', async (req, res) => {
 // =============================================
 
 /**
+ * GET /api/flyer/public
+ * Get semua flyer untuk public/dashboard (tanpa auth)
+ */
+router.get('/flyer/public', async (req, res) => {
+  try {
+    const result = await query('SELECT * FROM flyer ORDER BY created_at DESC');
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memuat data flyer',
+      error: error.message
+    });
+  }
+});
+
+/**
  * GET /api/flyer
  * Get semua flyer
  */
