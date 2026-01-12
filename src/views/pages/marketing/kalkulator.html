@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kalkulator - Website EMAS</title>
+    <link rel="icon" href="/public/images/logos/Bank_Syariah_Indonesia.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/public/css/styles.min.css" />
+    <link rel="stylesheet" href="/public/css/spa-transitions.css" />
+</head>
+<body>
+    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main wrapper -->
+        <div class="body-wrapper">
+            <!-- Header Container -->
+            <div id="header-container"></div>
+            
+            <div class="container-fluid">
+                <!-- Page Header -->
+                <div class="card bg-info-subtle shadow-none position-relative overflow-hidden mb-4">
+                    <div class="card-body px-4 py-3">
+                        <div class="row align-items-center">
+                            <div class="col-9">
+                                <h4 class="fw-semibold mb-8">Kalkulator</h4>
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item">
+                                            <a class="text-muted text-decoration-none" href="/dashboard">Home</a>
+                                        </li>
+                                        <li class="breadcrumb-item" aria-current="page">Marketing</li>
+                                        <li class="breadcrumb-item active" aria-current="page">Kalkulator</li>
+                                    </ol>
+                                </nav>
+                            </div>
+                            <div class="col-3">
+                                <div class="text-center mb-n5">
+                                    <img src="/public/images/backgrounds/rocket.png" alt="" class="img-fluid mb-n4" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Kalkulator Griya -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex flex-column align-items-center text-center h-100 justify-content-center py-4">
+                                    <div class="mb-4">
+                                        <iconify-icon icon="solar:home-2-bold-duotone" class="text-primary" style="font-size: 80px;"></iconify-icon>
+                                    </div>
+                                    <h5 class="card-title fw-semibold mb-3">
+                                        Kalkulator Pembiayaan Griya
+                                    </h5>
+                                    <p class="text-muted mb-4">Klik tombol di bawah untuk membuka kalkulator pembiayaan griya di sistem eksternal</p>
+                                    <a href="https://pjmbroker.com/home" target="_blank" class="btn btn-primary btn-lg">
+                                        <iconify-icon icon="solar:external-link-bold-duotone" class="fs-5 me-2"></iconify-icon>
+                                        Buka Kalkulator Griya
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kalkulator Premi -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex flex-column align-items-center text-center h-100 justify-content-center py-4">
+                                    <div class="mb-4">
+                                        <iconify-icon icon="solar:shield-check-bold-duotone" class="text-success" style="font-size: 80px;"></iconify-icon>
+                                    </div>
+                                    <h5 class="card-title fw-semibold mb-3">
+                                        Kalkulator Premi Asuransi
+                                    </h5>
+                                    <p class="text-muted mb-4">Klik tombol di bawah untuk membuka kalkulator premi asuransi di sistem eksternal</p>
+                                    <a href="https://pjmbroker.com/home" target="_blank" class="btn btn-success btn-lg">
+                                        <iconify-icon icon="solar:external-link-bold-duotone" class="fs-5 me-2"></iconify-icon>
+                                        Buka Kalkulator Premi
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer Component -->
+            <div id="footer-container"></div>
+        </div>
+    </div>
+    
+    <script src="/public/libs/jquery/dist/jquery.min.js"></script>
+    <script src="/public/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/public/libs/simplebar/dist/simplebar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+    <!-- Components Loader -->
+    <script src="/public/js/components-loader.js"></script>
+    
+    <!-- Permission System -->
+    <script src="/public/js/permissions.js"></script>
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        loadCommonComponents();
+      });
+    </script>
+  </body>
+</html>

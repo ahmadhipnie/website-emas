@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Stock Inventaris - Website EMAS</title>
+    <title>Stock ATM & Buku Tabungan - Website EMAS</title>
     <link rel="icon" href="/public/images/logos/Bank_Syariah_Indonesia.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/public/css/styles.min.css" />
     <link rel="stylesheet" href="/public/css/spa-transitions.css" />
@@ -28,13 +28,14 @@
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Stock Inventaris</h4>
+                                <h4 class="fw-semibold mb-8">Stock ATM & Buku Tabungan</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
                                             <a class="text-muted text-decoration-none" href="/dashboard">Home</a>
                                         </li>
-                                        <li class="breadcrumb-item" aria-current="page">Stock Inventaris</li>
+                                        <li class="breadcrumb-item" aria-current="page">Operasional</li>
+                                        <li class="breadcrumb-item active" aria-current="page">Stock ATM & Buku Tabungan</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -47,28 +48,28 @@
                     </div>
                 </div>
 
-                <!-- Inventaris Table Card -->
+                <!-- Stock Table Card -->
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div>
-                                <h5 class="card-title fw-semibold mb-0">Daftar Inventaris</h5>
-                                <p class="text-muted mb-0">Kelola stok dan kondisi barang inventaris</p>
+                                <h5 class="card-title fw-semibold mb-0">Daftar Stock ATM & Buku Tabungan</h5>
+                                <p class="text-muted mb-0">Kelola stock kartu ATM dan buku tabungan</p>
                             </div>
-                            <button type="button" class="btn btn-primary" id="btnAddInventaris">
+                            <button type="button" class="btn btn-primary" id="btnAddStock">
                                 <iconify-icon icon="tabler:plus" class="me-1"></iconify-icon>
-                                Tambah Inventaris
+                                Tambah Stock
                             </button>
                         </div>
 
                         <div class="table-responsive">
-                            <table id="inventarisTable" class="table table-striped table-bordered" style="width:100%">
+                            <table id="stockTable" class="table table-striped table-bordered" style="width:100%">
                                 <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Nama Barang</th>
+                                        <th>Jenis Item</th>
+                                        <th>Jenis ATM/Buku</th>
                                         <th>Jumlah</th>
-                                        <th>Kondisi</th>
                                         <th>Tanggal Update</th>
                                         <th>Keterangan</th>
                                         <th>Aksi</th>
@@ -87,45 +88,42 @@
         </div>
     </div>
 
-    <!-- Modal Add/Edit Inventaris -->
-    <div class="modal fade" id="inventarisModal" tabindex="-1" aria-labelledby="inventarisModalLabel" aria-hidden="true">
+    <!-- Modal Add/Edit Stock -->
+    <div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="inventarisModalLabel">Tambah Inventaris</h5>
+                    <h5 class="modal-title" id="stockModalLabel">Tambah Stock</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="inventarisForm">
+                <form id="stockForm">
                     <div class="modal-body">
-                        <input type="hidden" id="inventarisId" />
+                        <input type="hidden" id="stockId" />
                         
                         <div class="row">
-                            <div class="col-md-8 mb-3">
-                                <label for="nama_barang" class="form-label">Nama Barang <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="nama_barang" placeholder="Masukkan nama barang" required />
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="jumlah" class="form-label">Jumlah <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="jumlah" min="0" placeholder="0" required />
-                            </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="kondisi" class="form-label">Kondisi <span class="text-danger">*</span></label>
-                                <select class="form-select" id="kondisi" required>
-                                    <option value="">Pilih Kondisi</option>
-                                    <option value="Baik">Baik</option>
-                                    <option value="Rusak">Rusak</option>
-                                    <option value="Perlu Perbaikan">Perlu Perbaikan</option>
+                                <label for="jenis_item" class="form-label">Jenis Item <span class="text-danger">*</span></label>
+                                <select class="form-select" id="jenis_item" required>
+                                    <option value="">Pilih Jenis Item</option>
+                                    <option value="ATM">ATM</option>
+                                    <option value="Buku Tabungan">Buku Tabungan</option>
                                 </select>
                             </div>
                             
                             <div class="col-md-6 mb-3">
-                                <label for="tanggal_update" class="form-label">Tanggal Update</label>
-                                <input type="date" class="form-control" id="tanggal_update" />
+                                <label for="jenis_atm" class="form-label">Jenis ATM/Buku Tabungan <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="jenis_atm" placeholder="Contoh: BSI Classic, BSI Gold, dll" required />
                             </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="jumlah" class="form-label">Jumlah <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="jumlah" min="0" placeholder="Masukkan jumlah" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tanggal_update" class="form-label">Tanggal Update</label>
+                            <input type="date" class="form-control" id="tanggal_update" />
                         </div>
 
                         <div class="mb-3">
@@ -142,31 +140,31 @@
         </div>
     </div>
 
-    <!-- Modal View Inventaris -->
-    <div class="modal fade" id="viewInventarisModal" tabindex="-1" aria-labelledby="viewInventarisModalLabel" aria-hidden="true">
+    <!-- Modal View Stock -->
+    <div class="modal fade" id="viewStockModal" tabindex="-1" aria-labelledby="viewStockModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="viewInventarisModalLabel">Detail Inventaris</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="viewStockModalLabel">Detail Stock</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <table class="table table-borderless">
                         <tbody>
                             <tr>
-                                <td class="fw-semibold" style="width: 200px;">Nama Barang</td>
+                                <td class="fw-semibold" style="width: 200px;">Jenis Item</td>
                                 <td>:</td>
-                                <td id="viewNamaBarang">-</td>
+                                <td id="viewJenisItem">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">Jenis ATM/Buku Tabungan</td>
+                                <td>:</td>
+                                <td id="viewJenisAtm">-</td>
                             </tr>
                             <tr>
                                 <td class="fw-semibold">Jumlah</td>
                                 <td>:</td>
-                                <td id="viewJumlah">-</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-semibold">Kondisi</td>
-                                <td>:</td>
-                                <td id="viewKondisi">-</td>
+                                <td id="viewJumlah" class="fw-bold text-primary">-</td>
                             </tr>
                             <tr>
                                 <td class="fw-semibold">Tanggal Update</td>
@@ -189,16 +187,16 @@
     </div>
 
     <!-- Modal Delete Confirmation -->
-    <div class="modal fade" id="deleteInventarisModal" tabindex="-1" aria-labelledby="deleteInventarisModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteStockModal" tabindex="-1" aria-labelledby="deleteStockModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="deleteInventarisModalLabel">Konfirmasi Hapus</h5>
+                    <h5 class="modal-title" id="deleteStockModalLabel">Konfirmasi Hapus</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="deleteInventarisId" />
-                    <p>Apakah Anda yakin ingin menghapus inventaris ini?</p>
+                    <input type="hidden" id="deleteStockId" />
+                    <p>Apakah Anda yakin ingin menghapus stock ini?</p>
                     <p class="text-muted mb-0"><small>Data yang dihapus tidak dapat dikembalikan.</small></p>
                 </div>
                 <div class="modal-footer">
@@ -224,8 +222,8 @@
     <!-- Permission System -->
     <script src="/public/js/permissions.js"></script>
     
-    <!-- Stock Inventaris JS -->
-    <script src="/public/js/stock-inventaris.js"></script>
+    <!-- Stock ATM Buku JS -->
+    <script src="/public/js/stock-atm-buku.js"></script>
     
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -234,4 +232,3 @@
     </script>
   </body>
 </html>
-
