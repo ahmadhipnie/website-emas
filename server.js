@@ -59,15 +59,15 @@ const routes = {
   // Marketing Module
   "/simulasi-cicilan": "marketing/simulasi-cicilan.html",
   "/lead-management": "marketing/lead-management.html",
-  "/kalkulator-griya": "marketing/kalkulator-griya.html",
-  "/kalkulator-premi": "marketing/kalkulator-premi.html",
+  "/kalkulator": "marketing/kalkulator.html",
+  "/kegiatan": "marketing/kegiatan.html",
   
   // Operational Module
   "/calendar-event": "operational/calendar-event.html",
   "/stock-inventaris": "operational/stock-inventaris.html",
-  "/rab": "operational/rab.html",
+  "/stock-atm-buku": "operational/stock-atm-buku.html",
   "/laporan": "operational/laporan.html",
-  "/flyer": "operational/flyer.html",
+  // "/flyer": "operational/flyer.html", // Commented out
 
   // Admin Module
   "/management-users": "admin/management-users.html",

@@ -63,9 +63,10 @@ function disableAddButtons() {
     '#btnTambahLead',           // Lead Management
     '#btnTambahEvent',          // Calendar Event
     '#btnTambahInventaris',     // Stock Inventaris
-    '#btnTambahRAB',            // RAB
+    '#btnAddKegiatan',          // Kegiatan (NEW)
+    '#btnAddStock',             // Stock ATM & Buku (NEW)
     '#btnTambahLaporan',        // Laporan
-    '#btnTambahFlyer',          // Flyer
+    // '#btnTambahFlyer',        // Flyer - COMMENTED OUT
     '.btn-tambah',              // Buttons dengan class btn-tambah
     '[data-action="add"]',      // Buttons dengan data-action="add"
   ];

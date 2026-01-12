@@ -1,6 +1,6 @@
 /**
  * Laporan (LPJ - Laporan Pertanggungjawaban) Management
- * Handle CRUD operations untuk LPJ dengan relasi ke RAB
+ * Handle CRUD operations untuk LPJ
  */
 
 // DataTable instance
@@ -52,27 +52,6 @@ function initLaporanTable() {
           return formatRupiah(data || 0);
         },
         className: 'text-end'
-      },
-      { 
-        data: 'rab_anggaran',
-        render: function(data, type, row) {
-          if (!data) return '<span class="text-muted">-</span>';
-          return formatRupiah(data);
-        },
-        className: 'text-end'
-      },
-      { 
-        data: 'persentase_terhadap_rab',
-        render: function(data, type, row) {
-          if (!row.rab_anggaran) return '<span class="text-muted">-</span>';
-          
-          const percentage = parseFloat(data) || 0;
-          let badgeClass = 'bg-success';
-          if (percentage > 100) badgeClass = 'bg-danger';
-          else if (percentage > 90) badgeClass = 'bg-warning';
-          
-          return `<span class="badge ${badgeClass}">${percentage.toFixed(1)}%</span>`;
-        }
       },
       { 
         data: 'tanggal_lpj',
@@ -136,37 +115,6 @@ async function loadLaporan() {
 }
 
 // Load RAB list for dropdown
-async function loadRABList() {
-  try {
-    const response = await fetch('/api/rab');
-    const result = await response.json();
-    
-    const select = document.getElementById('id_rab');
-    select.innerHTML = '<option value="">Pilih RAB (Opsional)</option>';
-    select.disabled = false;
-
-    if (result && result.success) {
-      if (result.data.length === 0) {
-        select.innerHTML = '<option value="">Tidak ada RAB tersedia</option>';
-        select.disabled = true;
-        return;
-      }
-
-      result.data.forEach(rab => {
-        const option = document.createElement('option');
-        option.value = rab.id_rab;
-        option.textContent = `${rab.nama_kegiatan} - ${formatRupiah(rab.anggaran)} (${rab.status})`;
-        select.appendChild(option);
-      });
-    }
-  } catch (error) {
-    console.error('Error loading RAB list:', error);
-    const select = document.getElementById('id_rab');
-    select.innerHTML = '<option value="">Gagal memuat daftar RAB</option>';
-    select.disabled = true;
-  }
-}
-
 // Show Add Modal
 async function showAddModal() {
   // Reset form
@@ -187,9 +135,6 @@ async function showAddModal() {
   const dd = String(today.getDate()).padStart(2, '0');
   document.getElementById('tanggal_lpj').value = `${yyyy}-${mm}-${dd}`;
   
-  // Load RAB list
-  await loadRABList();
-  
   // Show modal
   const modal = new bootstrap.Modal(document.getElementById('laporanModal'));
   modal.show();
@@ -198,9 +143,6 @@ async function showAddModal() {
 // Show Edit Modal
 async function showEditModal(id) {
   try {
-    // Load RAB list first
-    await loadRABList();
-    
     const response = await fetch(`/api/laporan/${id}`);
     const result = await response.json();
     
@@ -213,7 +155,6 @@ async function showEditModal(id) {
     
     // Populate form
     document.getElementById('laporanId').value = data.id_lpj;
-    document.getElementById('id_rab').value = data.id_rab || '';
     document.getElementById('nama_kegiatan').value = data.nama_kegiatan || '';
     document.getElementById('total_pengeluaran').value = data.total_pengeluaran || 0;
     document.getElementById('tanggal_lpj').value = data.tanggal_lpj || '';
@@ -258,29 +199,6 @@ async function showViewModal(id) {
     // Populate detail
     document.getElementById('viewNamaKegiatan').textContent = data.nama_kegiatan || '-';
     document.getElementById('viewTotalPengeluaran').textContent = formatRupiah(data.total_pengeluaran || 0);
-    
-    // RAB info
-    if (data.id_rab && data.rab_nama_kegiatan) {
-      document.getElementById('viewRAB').innerHTML = `
-        <strong>${data.rab_nama_kegiatan}</strong><br>
-        <small>Anggaran: ${formatRupiah(data.rab_anggaran || 0)}</small><br>
-        <small>Status: <span class="badge bg-info">${data.rab_status || '-'}</span></small>
-      `;
-      
-      // Persentase
-      const percentage = data.rab_anggaran > 0 
-        ? ((data.total_pengeluaran / data.rab_anggaran) * 100).toFixed(2) 
-        : 0;
-      let badgeClass = 'bg-success';
-      if (percentage > 100) badgeClass = 'bg-danger';
-      else if (percentage > 90) badgeClass = 'bg-warning';
-      
-      document.getElementById('viewPersentaseRAB').innerHTML = 
-        `<span class="badge ${badgeClass}">${percentage}% dari anggaran RAB</span>`;
-    } else {
-      document.getElementById('viewRAB').textContent = 'Tidak terkait dengan RAB';
-      document.getElementById('viewPersentaseRAB').textContent = '-';
-    }
     
     // Format tanggal
     if (data.tanggal_lpj) {
@@ -349,7 +267,6 @@ async function saveLaporan(event) {
   
   // Create FormData untuk upload file
   const formData = new FormData();
-  formData.append('id_rab', document.getElementById('id_rab').value || '');
   formData.append('nama_kegiatan', document.getElementById('nama_kegiatan').value.trim());
   formData.append('total_pengeluaran', document.getElementById('total_pengeluaran').value);
   formData.append('tanggal_lpj', document.getElementById('tanggal_lpj').value);

@@ -2011,28 +2011,20 @@ router.delete("/rab/:id", isAuthenticated, async (req, res) => {
 
 /**
  * GET /api/laporan
- * Mendapatkan semua data LPJ dengan join ke RAB
+ * Mendapatkan semua data LPJ
  */
 router.get("/laporan", isAuthenticated, async (req, res) => {
   try {
     const result = await query(`
       SELECT 
-        l.id_lpj,
-        l.id_rab,
-        l.nama_kegiatan,
-        l.total_pengeluaran,
-        DATE_FORMAT(l.tanggal_lpj, '%Y-%m-%d') AS tanggal_lpj,
-        l.bukti_dokumen,
-        l.keterangan,
-        r.anggaran AS rab_anggaran,
-        r.status AS rab_status,
-        CASE 
-          WHEN r.anggaran > 0 THEN ROUND((l.total_pengeluaran / r.anggaran * 100), 2)
-          ELSE 0 
-        END AS persentase_terhadap_rab
-      FROM lpj l
-      LEFT JOIN rab r ON l.id_rab = r.id_rab
-      ORDER BY l.tanggal_lpj DESC, l.id_lpj DESC
+        id_lpj,
+        nama_kegiatan,
+        total_pengeluaran,
+        DATE_FORMAT(tanggal_lpj, '%Y-%m-%d') AS tanggal_lpj,
+        bukti_dokumen,
+        keterangan
+      FROM lpj
+      ORDER BY tanggal_lpj DESC, id_lpj DESC
     `);
 
     res.json({
@@ -2059,19 +2051,14 @@ router.get("/laporan/:id", isAuthenticated, async (req, res) => {
     const result = await query(
       `
       SELECT 
-        l.id_lpj,
-        l.id_rab,
-        l.nama_kegiatan,
-        l.total_pengeluaran,
-        DATE_FORMAT(l.tanggal_lpj, '%Y-%m-%d') AS tanggal_lpj,
-        l.bukti_dokumen,
-        l.keterangan,
-        r.nama_kegiatan AS rab_nama_kegiatan,
-        r.anggaran AS rab_anggaran,
-        r.status AS rab_status
-      FROM lpj l
-      LEFT JOIN rab r ON l.id_rab = r.id_rab
-      WHERE l.id_lpj = ?
+        id_lpj,
+        nama_kegiatan,
+        total_pengeluaran,
+        DATE_FORMAT(tanggal_lpj, '%Y-%m-%d') AS tanggal_lpj,
+        bukti_dokumen,
+        keterangan
+      FROM lpj
+      WHERE id_lpj = ?
     `,
       [id]
     );
@@ -2135,7 +2122,6 @@ router.post(
   async (req, res) => {
     try {
       const {
-        id_rab,
         nama_kegiatan,
         total_pengeluaran,
         tanggal_lpj,
@@ -2158,28 +2144,14 @@ router.post(
         });
       }
 
-      // Jika ada id_rab, validasi RAB exists
-      if (id_rab) {
-        const rabExists = await query("SELECT * FROM rab WHERE id_rab = ?", [
-          id_rab,
-        ]);
-        if (rabExists.length === 0) {
-          return res.status(404).json({
-            success: false,
-            message: "RAB tidak ditemukan",
-          });
-        }
-      }
-
       // Get filename dari uploaded file
       const bukti_dokumen = req.file ? req.file.filename : null;
 
       // Insert ke database
       const result = await query(
-        `INSERT INTO lpj (id_rab, nama_kegiatan, total_pengeluaran, tanggal_lpj, bukti_dokumen, keterangan)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO lpj (nama_kegiatan, total_pengeluaran, tanggal_lpj, bukti_dokumen, keterangan)
+       VALUES (?, ?, ?, ?, ?)`,
         [
-          id_rab || null,
           nama_kegiatan,
           parseFloat(total_pengeluaran),
           tanggal_lpj || null,
@@ -2193,7 +2165,6 @@ router.post(
         message: "Laporan berhasil ditambahkan",
         data: {
           id_lpj: result.insertId,
-          id_rab,
           nama_kegiatan,
           total_pengeluaran: parseFloat(total_pengeluaran),
           tanggal_lpj,
@@ -2224,7 +2195,6 @@ router.put(
     try {
       const { id } = req.params;
       const {
-        id_rab,
         nama_kegiatan,
         total_pengeluaran,
         tanggal_lpj,
@@ -2256,19 +2226,6 @@ router.put(
         });
       }
 
-      // Jika ada id_rab, validasi RAB exists
-      if (id_rab) {
-        const rabExists = await query("SELECT * FROM rab WHERE id_rab = ?", [
-          id_rab,
-        ]);
-        if (rabExists.length === 0) {
-          return res.status(404).json({
-            success: false,
-            message: "RAB tidak ditemukan",
-          });
-        }
-      }
-
       // Get filename dari uploaded file (jika ada file baru)
       let bukti_dokumen = existing[0].bukti_dokumen; // Keep old file
       if (req.file) {
@@ -2292,10 +2249,9 @@ router.put(
       // Update database
       await query(
         `UPDATE lpj 
-       SET id_rab = ?, nama_kegiatan = ?, total_pengeluaran = ?, tanggal_lpj = ?, bukti_dokumen = ?, keterangan = ?
+       SET nama_kegiatan = ?, total_pengeluaran = ?, tanggal_lpj = ?, bukti_dokumen = ?, keterangan = ?
        WHERE id_lpj = ?`,
         [
-          id_rab || null,
           nama_kegiatan,
           parseFloat(total_pengeluaran),
           tanggal_lpj || null,
@@ -2310,7 +2266,6 @@ router.put(
         message: "Laporan berhasil diperbarui",
         data: {
           id_lpj: parseInt(id),
-          id_rab,
           nama_kegiatan,
           total_pengeluaran: parseFloat(total_pengeluaran),
           tanggal_lpj,
@@ -2372,6 +2327,552 @@ router.delete("/laporan/:id", isAuthenticated, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Gagal menghapus Laporan",
+      error: error.message,
+    });
+  }
+});
+
+// =============================================
+// KEGIATAN CRUD ENDPOINTS
+// =============================================
+
+// Multer configuration for kegiatan documentation
+const storageKegiatan = multer.diskStorage({
+  destination: async function (req, file, cb) {
+    const uploadPath = path.join(__dirname, "../../public/uploads/kegiatan");
+    try {
+      await fs.mkdir(uploadPath, { recursive: true });
+    } catch (error) {
+      console.error("Error creating upload directory:", error);
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    const nameWithoutExt = path.basename(file.originalname, ext);
+    cb(null, nameWithoutExt + "-" + uniqueSuffix + ext);
+  },
+});
+
+const uploadKegiatan = multer({
+  storage: storageKegiatan,
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /jpeg|jpg|png|pdf/;
+    const extname = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error("Only PDF, JPG, JPEG, PNG files are allowed"));
+  },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
+
+/**
+ * GET /api/kegiatan/list
+ * Get all kegiatan
+ */
+router.get("/kegiatan/list", isAuthenticated, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT id_kegiatan, nama_kegiatan,
+             DATE_FORMAT(tanggal_kegiatan, '%Y-%m-%d') AS tanggal_kegiatan,
+             lokasi, target_kegiatan, hasil_kegiatan, dokumentasi,
+             DATE_FORMAT(tanggal_input, '%Y-%m-%d') AS tanggal_input,
+             keterangan
+      FROM kegiatan
+      ORDER BY tanggal_kegiatan DESC, id_kegiatan DESC
+    `);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error fetching kegiatan:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil data kegiatan",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/kegiatan/detail/:id
+ * Get kegiatan by ID
+ */
+router.get("/kegiatan/detail/:id", isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(
+      `
+      SELECT id_kegiatan, nama_kegiatan,
+             DATE_FORMAT(tanggal_kegiatan, '%Y-%m-%d') AS tanggal_kegiatan,
+             lokasi, target_kegiatan, hasil_kegiatan, dokumentasi,
+             DATE_FORMAT(tanggal_input, '%Y-%m-%d') AS tanggal_input,
+             keterangan
+      FROM kegiatan
+      WHERE id_kegiatan = ?
+    `,
+      [id]
+    );
+
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Kegiatan tidak ditemukan",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result[0],
+    });
+  } catch (error) {
+    console.error("Error fetching kegiatan detail:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil detail kegiatan",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/kegiatan/create
+ * Create new kegiatan
+ */
+router.post(
+  "/kegiatan/create",
+  isAuthenticated,
+  uploadKegiatan.single("dokumentasi"),
+  async (req, res) => {
+    try {
+      const {
+        nama_kegiatan,
+        tanggal_kegiatan,
+        lokasi,
+        target_kegiatan,
+        hasil_kegiatan,
+        keterangan,
+      } = req.body;
+
+      // Validasi input
+      if (!nama_kegiatan || !tanggal_kegiatan || !lokasi || !target_kegiatan) {
+        return res.status(400).json({
+          success: false,
+          message: "Nama kegiatan, tanggal, lokasi, dan target kegiatan harus diisi",
+        });
+      }
+
+      const dokumentasi = req.file ? req.file.filename : null;
+
+      const result = await query(
+        `INSERT INTO kegiatan (nama_kegiatan, tanggal_kegiatan, lokasi, hasil_kegiatan, target_kegiatan, dokumentasi, keterangan, tanggal_input)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [
+          nama_kegiatan,
+          tanggal_kegiatan,
+          lokasi,
+          hasil_kegiatan || null,
+          target_kegiatan,
+          dokumentasi,
+          keterangan || null,
+        ]
+      );
+
+      res.status(201).json({
+        success: true,
+        message: "Kegiatan berhasil ditambahkan",
+        data: {
+          id_kegiatan: result.insertId,
+          nama_kegiatan,
+          tanggal_kegiatan,
+          lokasi,
+          hasil_kegiatan,
+          dokumentasi,
+          keterangan,
+        },
+      });
+    } catch (error) {
+      console.error("Error creating kegiatan:", error);
+      res.status(500).json({
+        success: false,
+        message: "Gagal menambahkan kegiatan",
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/kegiatan/update/:id
+ * Update kegiatan
+ */
+router.post(
+  "/kegiatan/update/:id",
+  isAuthenticated,
+  uploadKegiatan.single("dokumentasi"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        nama_kegiatan,
+        tanggal_kegiatan,
+        lokasi,
+        target_kegiatan,
+        hasil_kegiatan,
+        keterangan,
+      } = req.body;
+
+      // Validasi input
+      if (!nama_kegiatan || !tanggal_kegiatan || !lokasi || !target_kegiatan) {
+        return res.status(400).json({
+          success: false,
+          message: "Nama kegiatan, tanggal, lokasi, dan target kegiatan harus diisi",
+        });
+      }
+
+      // Cek apakah kegiatan exists
+      const existing = await query(
+        "SELECT * FROM kegiatan WHERE id_kegiatan = ?",
+        [id]
+      );
+      if (existing.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Kegiatan tidak ditemukan",
+        });
+      }
+
+      let dokumentasi = existing[0].dokumentasi;
+      if (req.file) {
+        dokumentasi = req.file.filename;
+        // Hapus file lama jika ada
+        if (existing[0].dokumentasi) {
+          const oldFilePath = path.join(
+            __dirname,
+            "../../public/uploads/kegiatan",
+            existing[0].dokumentasi
+          );
+          try {
+            await fs.unlink(oldFilePath);
+          } catch (error) {
+            console.error("Error deleting old file:", error);
+          }
+        }
+      }
+
+      await query(
+        `UPDATE kegiatan 
+       SET nama_kegiatan = ?, tanggal_kegiatan = ?, lokasi = ?, target_kegiatan = ?, hasil_kegiatan = ?, dokumentasi = ?, keterangan = ?
+       WHERE id_kegiatan = ?`,
+        [
+          nama_kegiatan,
+          tanggal_kegiatan,
+          lokasi,
+          target_kegiatan,
+          hasil_kegiatan || null,
+          dokumentasi,
+          keterangan || null,
+          id,
+        ]
+      );
+
+      res.json({
+        success: true,
+        message: "Kegiatan berhasil diperbarui",
+      });
+    } catch (error) {
+      console.error("Error updating kegiatan:", error);
+      res.status(500).json({
+        success: false,
+        message: "Gagal memperbarui kegiatan",
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * DELETE /api/kegiatan/delete/:id
+ * Delete kegiatan
+ */
+router.delete("/kegiatan/delete/:id", isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const existing = await query(
+      "SELECT * FROM kegiatan WHERE id_kegiatan = ?",
+      [id]
+    );
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Kegiatan tidak ditemukan",
+      });
+    }
+
+    // Hapus file dokumentasi jika ada
+    if (existing[0].dokumentasi) {
+      const filePath = path.join(
+        __dirname,
+        "../../public/uploads/kegiatan",
+        existing[0].dokumentasi
+      );
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        console.error("Error deleting file:", error);
+      }
+    }
+
+    await query("DELETE FROM kegiatan WHERE id_kegiatan = ?", [id]);
+
+    res.json({
+      success: true,
+      message: "Kegiatan berhasil dihapus",
+    });
+  } catch (error) {
+    console.error("Error deleting kegiatan:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal menghapus kegiatan",
+      error: error.message,
+    });
+  }
+});
+
+// =============================================
+// STOCK ATM & BUKU TABUNGAN CRUD ENDPOINTS
+// =============================================
+
+/**
+ * GET /api/stock-atm-buku/list
+ * Get all stock ATM & Buku Tabungan
+ */
+router.get("/stock-atm-buku/list", isAuthenticated, async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT id_stok, jenis_item, jenis_atm, jumlah,
+             DATE_FORMAT(tanggal_update, '%Y-%m-%d') AS tanggal_update,
+             keterangan
+      FROM stock_atm_buku_tabungan
+      ORDER BY tanggal_update DESC, id_stok DESC
+    `);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error fetching stock:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil data stock",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/stock-atm-buku/detail/:id
+ * Get stock by ID
+ */
+router.get("/stock-atm-buku/detail/:id", isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(
+      `
+      SELECT id_stok, jenis_item, jenis_atm, jumlah,
+             DATE_FORMAT(tanggal_update, '%Y-%m-%d') AS tanggal_update,
+             keterangan
+      FROM stock_atm_buku_tabungan
+      WHERE id_stok = ?
+    `,
+      [id]
+    );
+
+    if (result.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Stock tidak ditemukan",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result[0],
+    });
+  } catch (error) {
+    console.error("Error fetching stock detail:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil detail stock",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/stock-atm-buku/create
+ * Create new stock
+ */
+router.post("/stock-atm-buku/create", isAuthenticated, async (req, res) => {
+  try {
+    const { jenis_item, jenis_atm, jumlah, tanggal_update, keterangan } =
+      req.body;
+
+    // Validasi input
+    if (!jenis_item || !jenis_atm || jumlah === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Jenis item, jenis ATM/Buku, dan jumlah harus diisi",
+      });
+    }
+
+    // Validasi jumlah
+    if (isNaN(jumlah) || parseInt(jumlah) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Jumlah harus berupa angka positif",
+      });
+    }
+
+    const result = await query(
+      `INSERT INTO stock_atm_buku_tabungan (jenis_item, jenis_atm, jumlah, tanggal_update, keterangan)
+       VALUES (?, ?, ?, ?, ?)`,
+      [
+        jenis_item,
+        jenis_atm,
+        parseInt(jumlah),
+        tanggal_update || null,
+        keterangan || null,
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Stock berhasil ditambahkan",
+      data: {
+        id_stok: result.insertId,
+        jenis_item,
+        jenis_atm,
+        jumlah: parseInt(jumlah),
+        tanggal_update,
+        keterangan,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating stock:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal menambahkan stock",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/stock-atm-buku/update/:id
+ * Update stock
+ */
+router.post("/stock-atm-buku/update/:id", isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { jenis_item, jenis_atm, jumlah, tanggal_update, keterangan } =
+      req.body;
+
+    // Validasi input
+    if (!jenis_item || !jenis_atm || jumlah === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Jenis item, jenis ATM/Buku, dan jumlah harus diisi",
+      });
+    }
+
+    // Validasi jumlah
+    if (isNaN(jumlah) || parseInt(jumlah) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Jumlah harus berupa angka positif",
+      });
+    }
+
+    // Cek apakah stock exists
+    const existing = await query(
+      "SELECT * FROM stock_atm_buku_tabungan WHERE id_stok = ?",
+      [id]
+    );
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Stock tidak ditemukan",
+      });
+    }
+
+    await query(
+      `UPDATE stock_atm_buku_tabungan 
+       SET jenis_item = ?, jenis_atm = ?, jumlah = ?, tanggal_update = ?, keterangan = ?
+       WHERE id_stok = ?`,
+      [
+        jenis_item,
+        jenis_atm,
+        parseInt(jumlah),
+        tanggal_update || null,
+        keterangan || null,
+        id,
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: "Stock berhasil diperbarui",
+    });
+  } catch (error) {
+    console.error("Error updating stock:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal memperbarui stock",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * DELETE /api/stock-atm-buku/delete/:id
+ * Delete stock
+ */
+router.delete("/stock-atm-buku/delete/:id", isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const existing = await query(
+      "SELECT * FROM stock_atm_buku_tabungan WHERE id_stok = ?",
+      [id]
+    );
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Stock tidak ditemukan",
+      });
+    }
+
+    await query("DELETE FROM stock_atm_buku_tabungan WHERE id_stok = ?", [id]);
+
+    res.json({
+      success: true,
+      message: "Stock berhasil dihapus",
+    });
+  } catch (error) {
+    console.error("Error deleting stock:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal menghapus stock",
       error: error.message,
     });
   }

@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Laporan (LPJ) - Website EMAS</title>
-    <link rel="shortcut icon" type="image/png" href="/public/images/logos/seodashlogo.png" />
+    <title>Laporan - Website EMAS</title>
+    <link rel="icon" href="/public/images/logos/Bank_Syariah_Indonesia.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/public/css/styles.min.css" />
     <link rel="stylesheet" href="/public/css/spa-transitions.css" />
     <!-- DataTables CSS -->
@@ -28,7 +28,7 @@
                     <div class="card-body px-4 py-3">
                         <div class="row align-items-center">
                             <div class="col-9">
-                                <h4 class="fw-semibold mb-8">Laporan Pertanggungjawaban (LPJ)</h4>
+                                <h4 class="fw-semibold mb-8">Laporan Pertanggung Jawaban (LPJ)</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb">
                                         <li class="breadcrumb-item">
@@ -52,8 +52,8 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div>
-                                <h5 class="card-title fw-semibold mb-0">Daftar Laporan Pertanggungjawaban</h5>
-                                <p class="text-muted mb-0">Kelola LPJ kegiatan dengan relasi ke RAB</p>
+                                <h5 class="card-title fw-semibold mb-0">Daftar Laporan Pertanggung Jawaban</h5>
+                                <p class="text-muted mb-0">Kelola Laporan Pertanggung Jawaban</p>
                             </div>
                             <button type="button" class="btn btn-success" id="btnAddLaporan">
                                 <iconify-icon icon="tabler:plus" class="me-1"></iconify-icon>
@@ -66,10 +66,8 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Nama Kegiatan</th>
+                                        <th>Nama Laporan</th>
                                         <th>Total Pengeluaran</th>
-                                        <th>Anggaran RAB</th>
-                                        <th>% RAB</th>
                                         <th>Tgl LPJ</th>
                                         <th>Bukti Dokumen</th>
                                         <th>Aksi</th>
@@ -101,17 +99,8 @@
                         <input type="hidden" id="laporanId" />
                         
                         <div class="mb-3">
-                            <label for="id_rab" class="form-label">Pilih RAB (Opsional)</label>
-                            <select class="form-select" id="id_rab">
-                                <option value="">Pilih RAB (Opsional)</option>
-                                <!-- Will be populated dynamically -->
-                            </select>
-                            <small class="text-muted">Pilih RAB jika laporan ini terkait dengan anggaran tertentu</small>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="nama_kegiatan" class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="nama_kegiatan" placeholder="Masukkan nama kegiatan" required />
+                            <label for="nama_kegiatan" class="form-label">Nama Laporan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nama_kegiatan" placeholder="Masukkan nama laporan" required />
                         </div>
 
                         <div class="row">
@@ -163,7 +152,7 @@
                             <table class="table table-borderless table-sm">
                                 <tbody>
                                     <tr>
-                                        <td class="fw-semibold" style="width: 140px;">Nama Kegiatan</td>
+                                        <td class="fw-semibold" style="width: 140px;">Nama Laporan</td>
                                         <td>:</td>
                                         <td id="viewNamaKegiatan">-</td>
                                     </tr>
@@ -171,16 +160,6 @@
                                         <td class="fw-semibold">Total Pengeluaran</td>
                                         <td>:</td>
                                         <td id="viewTotalPengeluaran" class="fw-bold text-danger">-</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-semibold">RAB Terkait</td>
-                                        <td>:</td>
-                                        <td id="viewRAB">-</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-semibold">Persentase thd RAB</td>
-                                        <td>:</td>
-                                        <td id="viewPersentaseRAB">-</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-semibold">Tanggal LPJ</td>
